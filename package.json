@@ -1,7 +1,7 @@
 {
   "name": "adp-sdk",
-  "version": "1.0.0",
-  "description": "Agent Discovery Protocol (ADP) v1.0 — Node.js reference implementation",
+  "version": "1.1.0",
+  "description": "Agent Discovery Protocol (ADP) v1.1 — Node.js reference implementation (SVCB-first, DANE, DNS-AID aligned)",
   "main": "src/index.js",
   "bin": {
     "adp-cli": "./bin/adp-cli.js"
@@ -9,12 +9,17 @@
   "type": "module",
   "scripts": {
     "agent-host": "node examples/agent-host/server.js",
-    "discover": "node examples/discover-agent.js"
+    "discover": "node examples/discover-agent.js",
+    "keygen": "node bin/adp-cli.js keygen",
+    "dns-gen": "node bin/adp-cli.js dns-gen"
   },
   "keywords": [
     "agent",
     "discovery",
     "dns",
+    "svcb",
+    "tlsa",
+    "dns-aid",
     "adp",
     "openclaw"
   ],
