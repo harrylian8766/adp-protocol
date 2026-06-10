@@ -203,7 +203,7 @@ GET https://{domain}/.well-known/agent.json
 
 ```json
 {
-  "$schema": "https://agent-discovery.org/schemas/1.1/agent.json",
+  "$schema": "https://raw.githubusercontent.com/harrylian8766/adp-protocol/main/schemas/v1.1/agent.json",
   "protocol": "ADP/1.1",
   "identity": {
     "id": "agent:alice.example.com",
@@ -317,7 +317,7 @@ Agent 必须在域名根路径提供 HTML 页面。
   <title>Alice's Agent</title>
   <script type="application/ld+json">
   {
-    "@context": "https://agent-discovery.org/schemas/1.1",
+    "@context": "https://raw.githubusercontent.com/harrylian8766/adp-protocol/main/schemas/v1.1",
     "@type": "AI Agent",
     ... (完整 agent.json 内容)
   }

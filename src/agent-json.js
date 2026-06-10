@@ -44,7 +44,7 @@ export function buildAgentJSON(config) {
   };
 
   return {
-    $schema: 'https://agent-discovery.org/schemas/1.1/agent.json',
+    $schema: 'https://raw.githubusercontent.com/harrylian8766/adp-protocol/main/schemas/v1.1/agent.json',
     protocol: 'ADP/1.1',
     identity: {
       id: `agent:${domain}`,
