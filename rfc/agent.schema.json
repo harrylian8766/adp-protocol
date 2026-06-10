@@ -1,0 +1,218 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-discovery.org/schemas/1.0/agent.json",
+  "title": "ADP Agent Metadata",
+  "description": "Agent Discovery Protocol — Well-Known agent.json schema (ADP/1.0)",
+  "type": "object",
+  "required": ["protocol", "identity", "endpoints", "capabilities", "security", "availability"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema self-reference"
+    },
+    "protocol": {
+      "type": "string",
+      "description": "Protocol version string",
+      "const": "ADP/1.0"
+    },
+    "identity": {
+      "type": "object",
+      "required": ["id", "domain", "name", "owner", "publicKey"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Agent URI",
+          "pattern": "^agent:.+$"
+        },
+        "domain": {
+          "type": "string",
+          "description": "Canonical FQDN"
+        },
+        "name": {
+          "type": "string",
+          "description": "Human-readable name"
+        },
+        "owner": {
+          "type": "string",
+          "description": "Owning entity display name"
+        },
+        "created": {
+          "type": "string",
+          "description": "ISO 8601 creation timestamp"
+        },
+        "publicKey": {
+          "type": "object",
+          "required": ["algorithm", "fingerprint"],
+          "properties": {
+            "algorithm": {
+              "type": "string",
+              "const": "ed25519"
+            },
+            "fingerprint": {
+              "type": "string",
+              "description": "SHA-256 hash of Ed25519 public key, base64url, prefixed ed25519:"
+            },
+            "full": {
+              "type": "string",
+              "description": "Base64url-encoded full Ed25519 public key (32 bytes raw)"
+            }
+          }
+        }
+      }
+    },
+    "endpoints": {
+      "type": "object",
+      "required": ["discovery", "wellKnown", "chat"],
+      "properties": {
+        "discovery": {
+          "type": "string",
+          "format": "uri",
+          "description": "Landing page URL (HTTPS)"
+        },
+        "wellKnown": {
+          "type": "string",
+          "format": "uri",
+          "description": "Well-Known agent.json URL (HTTPS)"
+        },
+        "chat": {
+          "type": "string",
+          "format": "uri",
+          "description": "WebSocket Secure URL"
+        },
+        "tasks": {
+          "type": "string",
+          "format": "uri",
+          "description": "Task API URL (HTTPS)"
+        },
+        "swarm": {
+          "type": "string",
+          "format": "uri",
+          "description": "Swarm coordination URL (HTTPS)"
+        }
+      }
+    },
+    "capabilities": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "name"],
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "input": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "output": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "interfaces": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["chat", "api", "webhook"]
+            }
+          },
+          "languages": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "BCP 47 language tag"
+            }
+          },
+          "pricing": {
+            "type": "object",
+            "required": ["model"],
+            "properties": {
+              "model": {
+                "type": "string",
+                "enum": ["free", "per_use", "subscription", "quota"]
+              },
+              "details": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "interfaces": {
+      "type": "object",
+      "properties": {
+        "html": { "type": "string", "format": "uri" },
+        "api": { "type": "string", "format": "uri" },
+        "chat": { "type": "string", "format": "uri" }
+      }
+    },
+    "relationships": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["type", "id", "name"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["peer", "child", "parent"]
+          },
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "trust": {
+            "type": "string",
+            "enum": ["unverified", "dns-verified", "key-verified", "peer-verified"]
+          },
+          "since": { "type": "string" }
+        }
+      }
+    },
+    "security": {
+      "type": "object",
+      "required": ["tlsRequired", "minProtocolVersion", "authMethods"],
+      "properties": {
+        "tlsRequired": { "const": true },
+        "minProtocolVersion": { "type": "string" },
+        "authMethods": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "rateLimit": {
+          "type": "object",
+          "properties": {
+            "requestsPerMinute": { "type": "number", "minimum": 1 },
+            "burstSize": { "type": "number", "minimum": 0 }
+          }
+        }
+      }
+    },
+    "policies": {
+      "type": "object",
+      "properties": {
+        "privacy": { "type": "string", "format": "uri" },
+        "terms": { "type": "string", "format": "uri" },
+        "dataRetention": { "type": "string" },
+        "thirdPartySharing": { "type": "boolean" }
+      }
+    },
+    "availability": {
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["online", "offline", "maintenance"]
+        },
+        "uptime": { "type": "string" },
+        "maintenanceWindow": { "type": ["string", "null"] }
+      }
+    },
+    "meta": {
+      "type": "object",
+      "properties": {
+        "updated": { "type": "string" },
+        "version": { "type": "string" },
+        "generator": { "type": "string" },
+        "documentation": { "type": ["string", "null"] }
+      }
+    }
+  }
+}
