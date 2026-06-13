@@ -3,3 +3,7 @@ node_modules/
 .env
 dist/
 .DS_Store
+__pycache__/
+node_modules/
+package-lock.json
+package.json
