@@ -399,7 +399,9 @@ Top-Level Members
 
 $schema (string, OPTIONAL):
 : URI of the JSON Schema for this document, e.g.
-  "https://raw.githubusercontent.com/harrylian8766/adp-protocol/main/schemas/v1.1/agent.json".
+ 
+"https://raw.githubusercontent.com/harrylian8766/adp-protocol/main/schem
+s/v1.1/agent.json".
 
 protocol (string, REQUIRED):
 : Protocol version string. For this document, MUST be "ADP/1.1".
@@ -501,7 +503,9 @@ Example
 
 `
 {
-  "$schema": "https://raw.githubusercontent.com/harrylian8766/adp-protocol/main/schemas/v1.1/agent.json",
+  "$schema":
+"https://raw.githubusercontent.com/harrylian8766/adp-protocol/main/schem
+s/v1.1/agent.json",
   "protocol": "ADP/1.1",
   "identity": {
     "id": "agent:alice.example.com",
@@ -576,7 +580,9 @@ JSON-LD Embedding
 
 The page MUST include a <script type="application/ld+json"> block
 containing the complete Agent metadata as a JSON-LD document, using the
-context URI https://raw.githubusercontent.com/harrylian8766/adp-protocol/main/schemas/v1.1.
+context URI
+https://raw.githubusercontent.com/harrylian8766/adp-protocol/main/schema
+/v1.1.
 
 
 HTML Meta Tags
@@ -823,18 +829,19 @@ registered through DNS-AID {{?I-D.mozleywilliams-dnsop-dnsaid}}. This
 document does not request independent registration of these keys.
 
 
-Service Name Registration (for fallback mode)
----------------------------------------------
+Service Name Registration
+-------------------------
 
-IANA is requested to register the following service name in the "Service
-Name and Transport Protocol Port Number Registry":
+IANA has registered the following service name in the "Service Name and
+Transport Protocol Port Number Registry":
 
-* Service Name: agent
+* Service Name: ai-adp
 * Transport Protocol: TCP
-* Description: AI Agent Discovery Protocol (fallback mode)
-* Assignee: IETF
-* Contact: Author of this document
-* Reference: This document
+* Description: AI Agent Discovery Protocol (ADP)
+* Assignee: [Harry_Lian]
+* Contact: [Harry_Lian]
+* Registration Date: 2026-06-12
+* Reference: [draft-pro-adp-agent-discovery-00]
 
 
 Media Type Registration
@@ -843,7 +850,7 @@ Media Type Registration
 IANA is requested to register the following media type:
 
 * Type name: application
-* Subtype name: adp+json`
+* Subtype name: adp+json
 * Required parameters: N/A
 * Optional parameters: N/A
 * Encoding considerations: binary (UTF-8 JSON)
@@ -908,3 +915,5 @@ VERSION HISTORY
 * -00: Initial version with TXT+SRV DNS discovery.
 * -01: SVCB-first via DNS-AID; TLSA+DANE; trust escalation model;
   fallback preservation for backward compatibility.
+* -01 (2026-06-13): Updated IANA Considerations to reflect completed
+  service name registration (ai-adp`).

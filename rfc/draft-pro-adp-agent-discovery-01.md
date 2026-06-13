@@ -22,7 +22,7 @@ organization = "AI Pair"
   [author.address]
   email = "harrylian8766@gmail.com"
 
-date = 2026-06-10T00:00:00Z
+date = 2026-06-13T00:00:00Z
 
 %%%
 
@@ -750,17 +750,18 @@ The SvcParamKeys `bap`, `cap`, `cap-sha256`, and `well-known` are
 registered through DNS-AID {{?I-D.mozleywilliams-dnsop-dnsaid}}. This
 document does not request independent registration of these keys.
 
-## Service Name Registration (for fallback mode)
+## Service Name Registration
 
-IANA is requested to register the following service name in the "Service
-Name and Transport Protocol Port Number Registry":
+IANA has registered the following service name in the "Service Name and
+Transport Protocol Port Number Registry":
 
-* Service Name: `agent`
+* Service Name: `ai-adp`
 * Transport Protocol: TCP
-* Description: AI Agent Discovery Protocol (fallback mode)
-* Assignee: IETF
-* Contact: Author of this document
-* Reference: This document
+* Description: AI Agent Discovery Protocol (ADP)
+* Assignee: [Harry_Lian]
+* Contact: [Harry_Lian]
+* Registration Date: 2026-06-12
+* Reference: [draft-pro-adp-agent-discovery-00]
 
 ## Media Type Registration
 
@@ -820,3 +821,5 @@ interaction.
 * **-00**: Initial version with TXT+SRV DNS discovery.
 * **-01**: SVCB-first via DNS-AID; TLSA+DANE; trust escalation model;
   fallback preservation for backward compatibility.
+* **-01 (2026-06-13)**: Updated IANA Considerations to reflect completed
+  service name registration (`ai-adp`).

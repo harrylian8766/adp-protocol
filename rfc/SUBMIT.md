@@ -1,5 +1,7 @@
 # How to Submit ADP to IETF as an Internet-Draft
 
+**Current draft:** `draft-pro-adp-agent-discovery-01.md` (ADP v1.1, SVCB-first via DNS-AID)
+
 ## Step 1: Install the Tools
 
 The IETF publishes Internet-Drafts in XML (xml2rfc v3) or Markdown (kramdown-rfc / mmark).
@@ -10,8 +12,8 @@ The IETF publishes Internet-Drafts in XML (xml2rfc v3) or Markdown (kramdown-rfc
 # Install mmark
 go install github.com/mmarkdown/mmark/v2/mmark@latest
 
-# Convert to XML
-mmark rfc/draft-pro-adp-agent-discovery-00.md > draft.xml
+# Convert to XML (use -01 for latest)
+mmark rfc/draft-pro-adp-agent-discovery-01.md > draft.xml
 
 # Convert to TXT
 xml2rfc --text draft.xml
@@ -41,7 +43,7 @@ Go to <https://datatracker.ietf.org/submit/>
 
 1. Log in with your IETF Datatracker account (free registration)
 2. Upload the XML file
-3. Set the draft name to `draft-pro-adp-agent-discovery-00`
+3. Set the draft name to `draft-pro-adp-agent-discovery-01`
 4. Choose Stream: **Independent Submission** (unless you have a Working Group)
 5. Submit
 
@@ -67,6 +69,11 @@ Feedback welcome!
 
 Link: https://datatracker.ietf.org/doc/draft-pro-adp-agent-discovery/
 Repo:  https://github.com/harrylian8766/adp-protocol
+
+## Version History
+
+- **-00** (2026-06-09): TXT+SRV DNS discovery initial version (ADP v1.0)
+- **-01** (2026-06-10): SVCB-first via DNS-AID; TLSA+DANE; trust escalation (ADP v1.1)
 ```
 
 ## Step 5: IANA Registration
