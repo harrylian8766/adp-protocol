@@ -8,7 +8,7 @@
      ipr="trust200902"
      category="info"
      docName="draft-pro-adp-agent-discovery-01"
-     submissionType="independent" version="3">
+     submissionType="independent">
 
   <front>
     <title abbrev="adp-agent-discovery">Agent Discovery Protocol (ADP) v1.1 — Well-Known Metadata and Interaction Layer</title>
@@ -797,4 +797,44 @@ Level 4: peer-verified
         <t>service name registration (<tt>ai-adp</tt>).</t>
     </section>
   </middle>
+
+  <back>
+    <references title="Normative References">
+      <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.9460.xml"/>
+      <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.6698.xml"/>
+      <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.9364.xml"/>
+      <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.8615.xml"/>
+      <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.6455.xml"/>
+      <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.8032.xml"/>
+      <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.1035.xml"/>
+      <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.2782.xml"/>
+      <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.7301.xml"/>
+      <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.8259.xml"/>
+      <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.7464.xml"/>
+      <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.8785.xml"/>
+      <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.8446.xml"/>
+    </references>
+
+    <references title="Informative References">
+      <reference anchor="I-D.mozleywilliams-dnsop-dnsaid" target="https://datatracker.ietf.org/doc/draft-mozleywilliams-dnsop-dnsaid/">
+        <front>
+          <title>DNS for AI Discovery</title>
+          <author initials="R." surname="Mozley" fullname="Richard Mozley">
+            <organization>Infoblox</organization>
+          </author>
+          <author initials="O." surname="Guðmundsson" fullname="Ólafur Guðmundsson">
+            <organization>Infoblox</organization>
+          </author>
+          <author initials="T." surname="Pusateri" fullname="Tom Pusateri">
+            <organization>Deutsche Telekom</organization>
+          </author>
+          <author initials="J." surname="Damick" fullname="Jeff Damick">
+            <organization>Amazon</organization>
+          </author>
+          <date year="2026" month="05" day="27"/>
+        </front>
+        <seriesInfo name="Internet-Draft" value="draft-mozleywilliams-dnsop-dnsaid-02"/>
+      </reference>
+    </references>
+  </back>
 </rfc>
