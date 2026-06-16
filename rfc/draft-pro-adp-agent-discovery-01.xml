@@ -50,19 +50,19 @@
           </ul>
           <t>document.</t>
           <t>ADP v1.1 adopts DNS-AID as its normative DNS discovery mechanism. The ADP</t>
-          <t>Well-Known JSON schema (Section {{well-known}}) serves as the content</t>
+          <t>Well-Known JSON schema (Section <xref target="well-known"/>) serves as the content</t>
           <t>format pointed to by the <tt>well-known</tt> SvcParamKey.</t>
           <t>If DNS-AID is unavailable (the DNS resolver does not support SVCB, or the</t>
           <t>authoritative server has not published SVCB records), ADP provides a</t>
           <t>fallback path using TXT <xref target="RFC1035"/> and SRV <xref target="RFC2782"/> records as</t>
-          <t>documented in Section {{fallback}}.</t>
+          <t>documented in Section <xref target="fallback"/>.</t>
       </section>
       <section title="Changes from -00">
           <ul spacing="compact">
             <li>Layer 1 (DNS): Replaced TXT+SRV as the primary mechanism with reference</li>
           </ul>
           <t>to DNS-AID <xref target="I-D.mozleywilliams-dnsop-dnsaid"/>. The original TXT+SRV</t>
-          <t>scheme is retained as a documented fallback (Section {{fallback}}).</t>
+          <t>scheme is retained as a documented fallback (Section <xref target="fallback"/>).</t>
           <ul spacing="compact">
             <li>Added TLSA <xref target="RFC6698"/> + DNSSEC <xref target="RFC9364"/> for DANE-style TLS</li>
           </ul>
@@ -127,7 +127,7 @@
         </dl>
         <t>padding and prefixed with <tt>ed25519:</tt>.</t>
         <dl spacing="compact"><dt>AGP (Agent Gateway Protocol)</dt>
-        <dd>The WebSocket-based messaging protocol defined in Section {{agp}},</dd>
+        <dd>The WebSocket-based messaging protocol defined in Section <xref target="agp"/>,</dd>
         </dl>
         <t>used for inter-agent communication after discovery.</t>
         <dl spacing="compact"><dt>DNS-AID</dt>
@@ -203,7 +203,7 @@ alice.example.com.  3600  IN  SVCB  1  . (
             </dl>
             <t>engines can match on Agent-level protocol without parsing transport</t>
             <t>protocol negotiation. ADP v1.1 defines the protocol identifier <tt>a2a</tt> for</t>
-            <t>the AGP messaging protocol (Section {{agp}}).</t>
+            <t>the AGP messaging protocol (Section <xref target="agp"/>).</t>
             <dl spacing="compact"><dt><tt>well-known</tt></dt>
             <dd>Path relative to the Well-Known URI namespace. Discovery Clients MUST</dd>
             </dl>
@@ -269,7 +269,7 @@ _443._tcp.alice.example.com.  3600  IN  TLSA  3  1  1  <cert-sha256>
           <t>records MUST be DNSSEC-signed to be trusted.</t>
       </section>
     </section>
-    <section anchor="#fallback" title="Fallback Discovery: TXT + SRV">
+    <section anchor="fallback" title="Fallback Discovery: TXT + SRV">
         <t>When the DNS resolver or authoritative server does not support SVCB</t>
         <t>queries (returns NODATA or NXDOMAIN for a SVCB query), Discovery Clients</t>
         <t>SHOULD fall back to the following mechanism. This section preserves the</t>
@@ -316,14 +316,14 @@ _agent._tcp.{domain}.  IN  SRV  <priority> <weight> <port> <target>
           <t>3. Query TXT at <tt>_agent.{domain}</tt>.</t>
           <t>4. Parse <tt>v</tt>, <tt>pk</tt>, <tt>wk</tt> fields.</t>
           <t>5. Query SRV at <tt>_agent._tcp.{domain}</tt> to locate host:port.</t>
-          <t>6. Proceed to Layer 2 (Section {{well-known}}) using the resolved URL and host.</t>
+          <t>6. Proceed to Layer 2 (Section <xref target="well-known"/>) using the resolved URL and host.</t>
           <t>Discovery Clients that successfully use the fallback path SHOULD indicate</t>
           <t>this in their user agent or log, as the security properties of fallback</t>
           <t>mode differ from SVCB-mode (no ALPN validation, no capability digest, no</t>
           <t>IP hints).</t>
       </section>
     </section>
-    <section anchor="#well-known" title="Layer 2: Well-Known Metadata">
+    <section anchor="well-known" title="Layer 2: Well-Known Metadata">
       <section title="Endpoint">
           <t>Every ADP-compliant Agent MUST serve a JSON document at the path</t>
           <dl spacing="compact"><dt>indicated by the SVCB <tt>well-known</tt> parameter, or at the default</dt>
@@ -349,13 +349,13 @@ _agent._tcp.{domain}.  IN  SRV  <priority> <weight> <port> <target>
             <dd>Protocol version string. For this document, MUST be <tt>"ADP/1.1"</tt>.</dd>
             </dl>
             <dl spacing="compact"><dt><tt>identity</tt> (object, REQUIRED)</dt>
-            <dd>Agent identity block (Section {{identity-block}}).</dd>
+            <dd>Agent identity block (Section <xref target="identity-block"/>).</dd>
             </dl>
             <dl spacing="compact"><dt><tt>endpoints</tt> (object, REQUIRED)</dt>
-            <dd>Map of endpoint names to absolute URLs (Section {{endpoints-block}}).</dd>
+            <dd>Map of endpoint names to absolute URLs (Section <xref target="endpoints-block"/>).</dd>
             </dl>
             <dl spacing="compact"><dt><tt>capabilities</tt> (array, REQUIRED)</dt>
-            <dd>Array of capability objects (Section {{capabilities-block}}).</dd>
+            <dd>Array of capability objects (Section <xref target="capabilities-block"/>).</dd>
             </dl>
             <dl spacing="compact"><dt><tt>interfaces</tt> (object, OPTIONAL)</dt>
             <dd>Map of interface type to URL, e.g. <tt>html</tt>, <tt>api</tt>, <tt>chat</tt>.</dd>
@@ -365,7 +365,7 @@ _agent._tcp.{domain}.  IN  SRV  <priority> <weight> <port> <target>
             </dl>
             <t><tt>trust</tt> level, and optional <tt>since</tt> timestamp.</t>
             <dl spacing="compact"><dt><tt>security</tt> (object, REQUIRED)</dt>
-            <dd>Security configuration (Section {{security-block}}).</dd>
+            <dd>Security configuration (Section <xref target="security-block"/>).</dd>
             </dl>
             <dl spacing="compact"><dt><tt>dns</tt> (object, OPTIONAL)</dt>
             <dd>DNS record references for verification:</dd>
@@ -385,7 +385,7 @@ _agent._tcp.{domain}.  IN  SRV  <priority> <weight> <port> <target>
             <dd>Document metadata: <tt>updated</tt>, <tt>version</tt>, <tt>generator</tt>, <tt>documentation</tt>.</dd>
             </dl>
         </section>
-        <section anchor="#identity-block" title="Identity Block">
+        <section anchor="identity-block" title="Identity Block">
             <dl spacing="compact"><dt>Contains</dt>
             </dl>
             <ul spacing="compact">
@@ -405,19 +405,19 @@ _agent._tcp.{domain}.  IN  SRV  <priority> <weight> <port> <target>
             </ul>
             <t>corresponding private key, encoded as <tt>signature:&lt;base64&gt;</tt>.</t>
         </section>
-        <section anchor="#endpoints-block" title="Endpoints Block">
+        <section anchor="endpoints-block" title="Endpoints Block">
             <dl spacing="compact"><dt>Contains</dt>
             </dl>
             <ul spacing="compact">
               <li><tt>discovery</tt>: Landing page URL (HTTPS).</li>
               <li><tt>wellKnown</tt>: Canonical Well-Known URL (HTTPS).</li>
-              <li><tt>chat</tt>: WebSocket Secure URL for AGP messaging (Section {{agp}}).</li>
+              <li><tt>chat</tt>: WebSocket Secure URL for AGP messaging (Section <xref target="agp"/>).</li>
               <li><tt>tasks</tt>: HTTPS URL for asynchronous task submission.</li>
               <li><tt>swarm</tt>: HTTPS URL for multi-agent coordination.</li>
               <li><tt>webhook</tt>: HTTPS URL for outbound event callbacks.</li>
             </ul>
         </section>
-        <section anchor="#capabilities-block" title="Capabilities Block">
+        <section anchor="capabilities-block" title="Capabilities Block">
             <dl spacing="compact"><dt>Each capability object describes a skill the Agent offers</dt>
             </dl>
             <ul spacing="compact">
@@ -431,14 +431,14 @@ _agent._tcp.{domain}.  IN  SRV  <priority> <weight> <port> <target>
               <li><tt>pricing</tt> (object): <tt>model</tt> (<tt>free</tt>, <tt>subscription</tt>, <tt>per-use</tt>, <tt>enterprise</tt>) and optional <tt>details</tt>.</li>
             </ul>
         </section>
-        <section anchor="#security-block" title="Security Block">
+        <section anchor="security-block" title="Security Block">
             <ul spacing="compact">
               <li><tt>tlsRequired</tt> (boolean): Whether TLS is required for all endpoints.</li>
               <li><tt>minProtocolVersion</tt> (string): Minimum ADP protocol version required.</li>
               <li><tt>authMethods</tt> (array): Supported authentication methods. ADP v1.1 adds</li>
             </ul>
             <t>the value <tt>dane</tt> to indicate DANE-based TLS authentication (Section</t>
-            <t>{{tlsa}}).</t>
+            <t><xref target="tlsa"/>).</t>
             <ul spacing="compact">
               <li><tt>rateLimit</tt> (object): <tt>requestsPerMinute</tt> and <tt>burstSize</tt>.</li>
             </ul>
@@ -535,7 +535,7 @@ _agent._tcp.{domain}.  IN  SRV  <priority> <weight> <port> <target>
             </ul>
         </section>
       </section>
-      <section anchor="#agp" title="Agent Gateway Protocol (AGP)">
+      <section anchor="agp" title="Agent Gateway Protocol (AGP)">
         <section title="Overview">
             <t>AGP is a JSON-based messaging protocol over WebSocket <xref target="RFC6455"/> that</t>
             <t>enables real-time, bidirectional communication between Agents after</t>
@@ -768,7 +768,7 @@ Level 4: peer-verified
       </section>
       <section title="Backward Compatibility">
           <t>ADP v1.1 Discovery Clients MUST support fallback to TXT+SRV discovery</t>
-          <t>(Section {{fallback}}) to interoperate with ADP v1.0 Agents.</t>
+          <t>(Section <xref target="fallback"/>) to interoperate with ADP v1.0 Agents.</t>
           <t>ADP v1.0 Discovery Clients will not benefit from SVCB-based discovery or</t>
           <t>DANE authentication, but can discover v1.1 Agents through the fallback</t>
           <t>path.</t>
@@ -799,20 +799,139 @@ Level 4: peer-verified
   </middle>
 
   <back>
-    <references title="Normative References">
-      <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.9460.xml"/>
-      <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.6698.xml"/>
-      <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.9364.xml"/>
-      <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.8615.xml"/>
-      <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.6455.xml"/>
-      <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.8032.xml"/>
-      <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.1035.xml"/>
-      <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.2782.xml"/>
-      <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.7301.xml"/>
-      <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.8259.xml"/>
-      <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.7464.xml"/>
-      <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.8785.xml"/>
-      <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.8446.xml"/>
+      <references title="Normative References">
+      <reference anchor="RFC9460">
+        <front>
+          <title>Service Binding and Parameter Specification via the DNS (SVCB and HTTPS Resource Records)</title>
+          <author initials="B." surname="Schwartz" fullname="Benjamin Schwartz"/>
+          <author initials="M." surname="Bishop" fullname="Mike Bishop"/>
+          <author initials="E." surname="Nygren" fullname="Erik Nygren"/>
+          <date year="2023" month="07"/>
+        </front>
+        <seriesInfo name="RFC" value="9460"/>
+        <seriesInfo name="DOI" value="10.17487/RFC9460"/>
+      </reference>
+      <reference anchor="RFC6698">
+        <front>
+          <title>DNS-Based Authentication of Named Entities (DANE) Transport Layer Security (TLS) Protocol: TLSA</title>
+          <author initials="P." surname="Hoffman" fullname="Paul Hoffman"/>
+          <author initials="J." surname="Schlyter" fullname="Jakob Schlyter"/>
+          <date year="2012" month="08"/>
+        </front>
+        <seriesInfo name="RFC" value="6698"/>
+        <seriesInfo name="DOI" value="10.17487/RFC6698"/>
+      </reference>
+      <reference anchor="RFC9364">
+        <front>
+          <title>DNS Security Extensions (DNSSEC)</title>
+          <author initials="P." surname="Hoffman" fullname="Paul Hoffman"/>
+          <date year="2023" month="02"/>
+        </front>
+        <seriesInfo name="BCP" value="237"/>
+        <seriesInfo name="RFC" value="9364"/>
+        <seriesInfo name="DOI" value="10.17487/RFC9364"/>
+      </reference>
+      <reference anchor="RFC8615">
+        <front>
+          <title>Well-Known Uniform Resource Identifiers (URIs)</title>
+          <author initials="M." surname="Nottingham" fullname="Mark Nottingham"/>
+          <date year="2019" month="07"/>
+        </front>
+        <seriesInfo name="RFC" value="8615"/>
+        <seriesInfo name="DOI" value="10.17487/RFC8615"/>
+      </reference>
+      <reference anchor="RFC6455">
+        <front>
+          <title>The WebSocket Protocol</title>
+          <author initials="I." surname="Fette" fullname="Ian Fette"/>
+          <author initials="A." surname="Melnikov" fullname="Alexey Melnikov"/>
+          <date year="2011" month="12"/>
+        </front>
+        <seriesInfo name="RFC" value="6455"/>
+        <seriesInfo name="DOI" value="10.17487/RFC6455"/>
+      </reference>
+      <reference anchor="RFC8032">
+        <front>
+          <title>Edwards-Curve Digital Signature Algorithm (EdDSA)</title>
+          <author initials="S." surname="Josefsson" fullname="Simon Josefsson"/>
+          <author initials="I." surname="Liusvaara" fullname="Ilari Liusvaara"/>
+          <date year="2017" month="01"/>
+        </front>
+        <seriesInfo name="RFC" value="8032"/>
+        <seriesInfo name="DOI" value="10.17487/RFC8032"/>
+      </reference>
+      <reference anchor="RFC1035">
+        <front>
+          <title>Domain Names — Implementation and Specification</title>
+          <author initials="P." surname="Mockapetris" fullname="Paul Mockapetris"/>
+          <date year="1987" month="11"/>
+        </front>
+        <seriesInfo name="STD" value="13"/>
+        <seriesInfo name="RFC" value="1035"/>
+        <seriesInfo name="DOI" value="10.17487/RFC1035"/>
+      </reference>
+      <reference anchor="RFC2782">
+        <front>
+          <title>A DNS RR for Specifying the Location of Services (DNS SRV)</title>
+          <author initials="A." surname="Gulbrandsen" fullname="Arnt Gulbrandsen"/>
+          <author initials="P." surname="Vixie" fullname="Paul Vixie"/>
+          <author initials="L." surname="Esibov" fullname="Lev Esibov"/>
+          <date year="2000" month="02"/>
+        </front>
+        <seriesInfo name="RFC" value="2782"/>
+        <seriesInfo name="DOI" value="10.17487/RFC2782"/>
+      </reference>
+      <reference anchor="RFC7301">
+        <front>
+          <title>Transport Layer Security (TLS) Application-Layer Protocol Negotiation Extension</title>
+          <author initials="S." surname="Friedl" fullname="Stephan Friedl"/>
+          <author initials="A." surname="Popov" fullname="Andrey Popov"/>
+          <author initials="A." surname="Langley" fullname="Adam Langley"/>
+          <author initials="E." surname="Stephan" fullname="Emile Stephan"/>
+          <date year="2014" month="07"/>
+        </front>
+        <seriesInfo name="RFC" value="7301"/>
+        <seriesInfo name="DOI" value="10.17487/RFC7301"/>
+      </reference>
+      <reference anchor="RFC8259">
+        <front>
+          <title>The JavaScript Object Notation (JSON) Data Interchange Format</title>
+          <author initials="T." surname="Bray" fullname="Tim Bray"/>
+          <date year="2017" month="12"/>
+        </front>
+        <seriesInfo name="STD" value="90"/>
+        <seriesInfo name="RFC" value="8259"/>
+        <seriesInfo name="DOI" value="10.17487/RFC8259"/>
+      </reference>
+      <reference anchor="RFC7464">
+        <front>
+          <title>JavaScript Object Notation (JSON) Text Sequences</title>
+          <author initials="N." surname="Williams" fullname="Nicolas Williams"/>
+          <date year="2015" month="02"/>
+        </front>
+        <seriesInfo name="RFC" value="7464"/>
+        <seriesInfo name="DOI" value="10.17487/RFC7464"/>
+      </reference>
+      <reference anchor="RFC8785">
+        <front>
+          <title>JSON Canonicalization Scheme (JCS)</title>
+          <author initials="A." surname="Rundgren" fullname="Anders Rundgren"/>
+          <author initials="B." surname="Jordan" fullname="Bret Jordan"/>
+          <author initials="S." surname="Erdtman" fullname="Samuel Erdtman"/>
+          <date year="2020" month="06"/>
+        </front>
+        <seriesInfo name="RFC" value="8785"/>
+        <seriesInfo name="DOI" value="10.17487/RFC8785"/>
+      </reference>
+      <reference anchor="RFC8446">
+        <front>
+          <title>The Transport Layer Security (TLS) Protocol Version 1.3</title>
+          <author initials="E." surname="Rescorla" fullname="Eric Rescorla"/>
+          <date year="2018" month="08"/>
+        </front>
+        <seriesInfo name="RFC" value="8446"/>
+        <seriesInfo name="DOI" value="10.17487/RFC8446"/>
+      </reference>
     </references>
 
     <references title="Informative References">
