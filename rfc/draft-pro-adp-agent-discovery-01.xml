@@ -5,6 +5,7 @@
 <?rfc compact="yes"?>
 
 <rfc xmlns:xi="http://www.w3.org/2001/XInclude"
+     version="3"
      ipr="trust200902"
      category="info"
      docName="draft-pro-adp-agent-discovery-01"
