@@ -22,6 +22,17 @@
     <date year="2026" month="06" day="13"/>
 
     <keyword>agent, discovery, well-known, agp, ed25519, svcb, dns-aid</keyword>
+
+    <abstract>
+      <t>This document defines the Agent Discovery Protocol (ADP) v1.1,
+      a layered protocol for discovering, verifying, and interacting with
+      AI Agents on the Internet. ADP delegates DNS discovery to DNS-AID
+      (SVCB records) and defines a Well-Known JSON metadata format,
+      an Ed25519-based identity model, and the Agent Gateway Protocol (AGP)
+      for real-time WebSocket messaging. The protocol is designed to be
+      decentralized, standards-based, and incremental — clients escalate
+      from DNS to HTTP to WebSocket only as needed.</t>
+    </abstract>
   </front>
 
   <middle>
@@ -109,7 +120,7 @@
       </section>
     </section>
     <section title="Terminology">
-        <t>{::boilerplate bcp14-tagged}</t>
+
         <dl spacing="compact"><dt>Agent</dt>
         <dd>An autonomous or semi-autonomous software entity identified by a domain</dd>
         </dl>
@@ -784,7 +795,7 @@ Level 4: peer-verified
         <t>possible layer" were inspired by discussions with Pro about the</t>
         <t>relationship between domain identity, DNS discovery, and Web-native Agent</t>
         <t>interaction.</t>
-        <t>{numbered="false"}</t>
+
     </section>
     <section title="Version History">
         <ul spacing="compact">
