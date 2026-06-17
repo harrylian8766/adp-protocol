@@ -1,15 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<?rfc toc="yes"?>
-<?rfc symrefs="yes"?>
-<?rfc sortrefs="yes"?>
-<?rfc compact="yes"?>
-
-<rfc xmlns:xi="http://www.w3.org/2001/XInclude"
-     version="3"
-     ipr="trust200902"
-     category="info"
-     docName="draft-pro-adp-agent-discovery-02"
-     submissionType="independent">
+<?rfc toc="yes"?><?rfc symrefs="yes"?><?rfc sortrefs="yes"?><?rfc compact="yes"?><rfc xmlns:xi="http://www.w3.org/2001/XInclude" version="3" ipr="trust200902" category="info" docName="draft-pro-adp-agent-discovery-02" submissionType="independent">
 
   <front>
     <title abbrev="adp-agent-discovery">Agent Discovery Protocol (ADP) v1.1 — Well-Known Metadata and Interaction Layer</title>
@@ -19,7 +8,7 @@
         <email>harrylian8766@gmail.com</email>
       </address>
     </author>
-    <date year="2026" month="06" day="13"/>
+    <date year="2026" month="06" day="17"/>
 
     <keyword>agent, discovery, well-known, agp, ed25519, svcb, dns-aid</keyword>
 
@@ -52,8 +41,7 @@
       <section title="Relationship to DNS-AID">
           <t>DNS-AID <xref target="I-D.mozleywilliams-dnsop-dnsaid"/> defines the DNS discovery</t>
           <t>layer for Agents using SVCB records <xref target="RFC9460"/>. It registers the</t>
-          <dl spacing="compact"><dt>following SvcParamKeys</dt>
-          </dl>
+          
           <ul spacing="compact">
             <li><tt>bap</tt>: Bulk Agent Protocol identifier (e.g. <tt>a2a</tt>, <tt>mcp</tt>).</li>
             <li><tt>cap</tt>: URI or URN of the Agent's capability descriptor.</li>
@@ -122,37 +110,36 @@
     <section title="Terminology">
 
         <dl spacing="compact"><dt>Agent</dt>
-        <dd>An autonomous or semi-autonomous software entity identified by a domain</dd>
+        <dd>An autonomous or semi-autonomous software entity identified by a domain name, capable of being discovered through DNS-AID + ADP and interactingvia standard Web protocols.</dd>
         </dl>
-        <t>name, capable of being discovered through DNS-AID + ADP and interacting</t>
-        <t>via standard Web protocols.</t>
+        
+        
         <dl spacing="compact"><dt>Agent Domain</dt>
-        <dd>A fully qualified domain name (FQDN) that serves as the canonical</dd>
+        <dd>A fully qualified domain name (FQDN) that serves as the canonical identifier for an Agent. The Agent URI scheme is <tt>agent:{domain}</tt>.</dd>
         </dl>
-        <t>identifier for an Agent. The Agent URI scheme is <tt>agent:{domain}</tt>.</t>
+        
         <dl spacing="compact"><dt>Discovery Client</dt>
-        <dd>Software that performs discovery to locate and verify an Agent's</dd>
+        <dd>Software that performs discovery to locate and verify an Agent's identity, capabilities, and endpoints.</dd>
         </dl>
-        <t>identity, capabilities, and endpoints.</t>
+        
         <dl spacing="compact"><dt>Fingerprint</dt>
-        <dd>The SHA-256 hash of an Ed25519 public key, encoded in base64url without</dd>
+        <dd>The SHA-256 hash of an Ed25519 public key, encoded in base64url without padding and prefixed with <tt>ed25519:</tt>.</dd>
         </dl>
-        <t>padding and prefixed with <tt>ed25519:</tt>.</t>
+        
         <dl spacing="compact"><dt>AGP (Agent Gateway Protocol)</dt>
-        <dd>The WebSocket-based messaging protocol defined in Section <xref target="agp"/>,</dd>
+        <dd>The WebSocket-based messaging protocol defined in Section <xref target="agp"/>, used for inter-agent communication after discovery.</dd>
         </dl>
-        <t>used for inter-agent communication after discovery.</t>
+        
         <dl spacing="compact"><dt>DNS-AID</dt>
-        <dd>The DNS-based Agent Identity and Discovery mechanism defined in</dd>
+        <dd>The DNS-based Agent Identity and Discovery mechanism defined in <xref target="I-D.mozleywilliams-dnsop-dnsaid"/>, which serves as ADP's normativeLayer 1.</dd>
         </dl>
-        <t><xref target="I-D.mozleywilliams-dnsop-dnsaid"/>, which serves as ADP's normative</t>
-        <t>Layer 1.</t>
+        
+        
     </section>
     <section title="Protocol Overview">
         <t>The Agent Discovery Protocol defines a three-layer discovery and</t>
-        <dl spacing="compact"><dt>interaction stack</dt>
-        </dl>
-        <t>1. <strong>Layer 1 — DNS Discovery (delegated to DNS-AID):</strong> A single SVCB</t>
+        
+        <t>interaction stack 1. <strong>Layer 1 — DNS Discovery (delegated to DNS-AID):</strong> A single SVCB</t>
         <t>query at the Agent's domain name returns the target, port, IP hints,</t>
         <t>ALPN protocol list, Agent protocol identifier (<tt>bap</tt>), capability</t>
         <t>descriptor URI (<tt>cap</tt>), its SHA-256 digest (<tt>cap-sha256</tt>), and the</t>
@@ -167,8 +154,7 @@
         <t>embedded JSON-LD structured data. WebSocket endpoints using the Agent</t>
         <t>Gateway Protocol (AGP) enable real-time inter-agent communication with</t>
         <t>Ed25519 signature authentication.</t>
-        <dl spacing="compact"><dt>The relationship between DNS-AID and ADP is</dt>
-        </dl>
+        
         <figure><artwork><![CDATA[
 +-----------------------------------------------------+
 |                 Agent Discovery Stack               |
@@ -188,8 +174,7 @@
         <t>integration points; the normative specification resides in that document.</t>
       <section title="SVCB Record (RECOMMENDED)">
           <t>An ADP-compliant Agent SHOULD publish a SVCB record at its domain name</t>
-          <dl spacing="compact"><dt>using the <tt>ServiceMode</tt> (SvcPriority 1–65535)</dt>
-          </dl>
+          
           <figure><artwork><![CDATA[
 alice.example.com.  3600  IN  SVCB  1  . (
     alpn="a2a,h2,h3"
@@ -203,38 +188,36 @@ alice.example.com.  3600  IN  SVCB  1  . (
 )
           ]]></artwork></figure>
         <section title="SvcParamKey Usage in ADP">
-            <dl spacing="compact"><dt>The following SvcParamKeys, defined by DNS-AID, are relevant to ADP</dt>
-            </dl>
+            
             <dl spacing="compact"><dt><tt>alpn</tt></dt>
-            <dd>The application-layer protocol negotiation IDs <xref target="RFC7301"/>. ADP Agents</dd>
+            <dd>The application-layer protocol negotiation IDs <xref target="RFC7301"/>. ADP Agents SHOULD include the relevant Agent protocol identifier (e.g., <tt>a2a</tt>)alongside standard HTTP protocol IDs (<tt>h2</tt>, <tt>h3</tt>).</dd>
             </dl>
-            <t>SHOULD include the relevant Agent protocol identifier (e.g., <tt>a2a</tt>)</t>
-            <t>alongside standard HTTP protocol IDs (<tt>h2</tt>, <tt>h3</tt>).</t>
+            
+            
             <dl spacing="compact"><dt><tt>bap</tt></dt>
-            <dd>Bulk Agent Protocol identifier. Separated from <tt>alpn</tt> so that policy</dd>
+            <dd>Bulk Agent Protocol identifier. Separated from <tt>alpn</tt> so that policy engines can match on Agent-level protocol without parsing transportprotocol negotiation. ADP v1.1 defines the protocol identifier <tt>a2a</tt> forthe AGP messaging protocol (Section <xref target="agp"/>).</dd>
             </dl>
-            <t>engines can match on Agent-level protocol without parsing transport</t>
-            <t>protocol negotiation. ADP v1.1 defines the protocol identifier <tt>a2a</tt> for</t>
-            <t>the AGP messaging protocol (Section <xref target="agp"/>).</t>
+            
+            
+            
             <dl spacing="compact"><dt><tt>well-known</tt></dt>
-            <dd>Path relative to the Well-Known URI namespace. Discovery Clients MUST</dd>
+            <dd>Path relative to the Well-Known URI namespace. Discovery Clients MUST resolve this against <tt>https://{target}/.well-known/{well-known}</tt>. Ifabsent, the default path <tt>/.well-known/agent.json</tt> is used.</dd>
             </dl>
-            <t>resolve this against <tt>https://{target}/.well-known/{well-known}</tt>. If</t>
-            <t>absent, the default path <tt>/.well-known/agent.json</tt> is used.</t>
+            
+            
             <dl spacing="compact"><dt><tt>cap</tt></dt>
-            <dd>URI or URN identifying the Agent's capability descriptor. ADP Agents</dd>
+            <dd>URI or URN identifying the Agent's capability descriptor. ADP Agents SHOULD publish this as a URL to their capability document.</dd>
             </dl>
-            <t>SHOULD publish this as a URL to their capability document.</t>
+            
             <dl spacing="compact"><dt><tt>cap-sha256</tt></dt>
-            <dd>SHA-256 digest of the capability descriptor at the time of DNS</dd>
+            <dd>SHA-256 digest of the capability descriptor at the time of DNS publishing. Allows a Discovery Client to verify that the capabilitydocument has not changed without re-fetching.</dd>
             </dl>
-            <t>publishing. Allows a Discovery Client to verify that the capability</t>
-            <t>document has not changed without re-fetching.</t>
+            
+            
         </section>
         <section title="Hosted Agents (TargetName)">
             <t>When an Agent is hosted by a third-party provider, the SVCB TargetName</t>
-            <dl spacing="compact"><dt>points to the provider's infrastructure</dt>
-            </dl>
+            
             <figure><artwork><![CDATA[
 alice.example.com.  3600  IN  SVCB  1  provider.example.com. (
     alpn="a2a,h2"
@@ -246,23 +229,20 @@ alice.example.com.  3600  IN  SVCB  1  provider.example.com. (
         </section>
         <section title="Organization Index (AliasMode)">
             <t>Organizations MAY publish an index of their Agents using AliasMode</t>
-            <dl spacing="compact"><dt>(SvcPriority 0) under a discoverable prefix</dt>
-            </dl>
+            
             <figure><artwork><![CDATA[
 _agents.example.com.  3600  IN  SVCB  0  alice.example.com.
 _agents.example.com.  3600  IN  SVCB  0  bob.example.com.
             ]]></artwork></figure>
         </section>
       </section>
-      <section title="TLSA Record (RECOMMENDED with DNSSEC)">
+      <section anchor="tlsa" title="TLSA Record (RECOMMENDED with DNSSEC)">
           <t>ADP Agents SHOULD publish a TLSA record to enable DANE</t>
-          <dl spacing="compact"><dt><xref target="RFC6698"/>-based TLS endpoint authentication</dt>
-          </dl>
+          
           <figure><artwork><![CDATA[
 _443._tcp.alice.example.com.  3600  IN  TLSA  3  1  1  <cert-sha256>
           ]]></artwork></figure>
-          <dl spacing="compact"><dt>Requirements</dt>
-          </dl>
+          
           <ul spacing="compact">
             <li>TLSA records are only valid when the DNS zone is DNSSEC-signed</li>
           </ul>
@@ -290,15 +270,14 @@ _443._tcp.alice.example.com.  3600  IN  TLSA  3  1  1  <cert-sha256>
           <figure><artwork><![CDATA[
 _agent.{domain}.  IN  TXT  "v=ADP1.1; pk=ed25519:<fp>; wk=<url>; alpn=a2a"
           ]]></artwork></figure>
-          <dl spacing="compact"><dt>Fields</dt>
-          </dl>
+          
           <dl spacing="compact"><dt><tt>v</tt> (REQUIRED)</dt>
           <dd>Protocol version. MUST be <tt>ADP1</tt>, <tt>ADP1.0</tt>, or <tt>ADP1.1</tt>.</dd>
           </dl>
           <dl spacing="compact"><dt><tt>pk</tt> (REQUIRED)</dt>
-          <dd>Public key fingerprint. Computed as SHA-256 of the raw Ed25519 public</dd>
+          <dd>Public key fingerprint. Computed as SHA-256 of the raw Ed25519 public key, encoded in base64url without padding.</dd>
           </dl>
-          <t>key, encoded in base64url without padding.</t>
+          
           <dl spacing="compact"><dt><tt>wk</tt> (REQUIRED)</dt>
           <dd>Full HTTPS URL to the Well-Known agent metadata endpoint.</dd>
           </dl>
@@ -309,11 +288,11 @@ _agent.{domain}.  IN  TXT  "v=ADP1.1; pk=ed25519:<fp>; wk=<url>; alpn=a2a"
           <dd>Service port number. Default: 443.</dd>
           </dl>
           <dl spacing="compact"><dt><tt>bap</tt> (OPTIONAL)</dt>
-          <dd>Agent protocol identifier.</dd>
+          <dd>Agent protocol identifier. Multi-record TXT: Values exceeding 255 octets MAY be split acrossmultiple TXT records at the same owner name. Reassembly concatenatesRDATA in returned order.</dd>
           </dl>
-          <t>Multi-record TXT: Values exceeding 255 octets MAY be split across</t>
-          <t>multiple TXT records at the same owner name. Reassembly concatenates</t>
-          <t>RDATA in returned order.</t>
+          
+          
+          
       </section>
       <section title="SRV Record">
           <figure><artwork><![CDATA[
@@ -338,8 +317,7 @@ _agent._tcp.{domain}.  IN  SRV  <priority> <weight> <port> <target>
     <section anchor="well-known" title="Layer 2: Well-Known Metadata">
       <section title="Endpoint">
           <t>Every ADP-compliant Agent MUST serve a JSON document at the path</t>
-          <dl spacing="compact"><dt>indicated by the SVCB <tt>well-known</tt> parameter, or at the default</dt>
-          </dl>
+          
           <figure><artwork><![CDATA[
 /.well-known/agent.json
           ]]></artwork></figure>
@@ -354,11 +332,11 @@ _agent._tcp.{domain}.  IN  SRV  <priority> <weight> <port> <target>
       <section title="Schema">
         <section title="Top-Level Members">
             <dl spacing="compact"><dt><tt>$schema</tt> (string, OPTIONAL)</dt>
-            <dd>URI of the JSON Schema for this document, e.g.</dd>
+            <dd>URI of the JSON Schema for this document, e.g. <tt>&quot;https://raw.githubusercontent.com/harrylian8766/adp-protocol/main/schemas/v1.1/agent.json&quot;</tt>.</dd>
             </dl>
-            <t><tt>"https://raw.githubusercontent.com/harrylian8766/adp-protocol/main/schemas/v1.1/agent.json"</tt>.</t>
+            
             <dl spacing="compact"><dt><tt>protocol</tt> (string, REQUIRED)</dt>
-            <dd>Protocol version string. For this document, MUST be <tt>"ADP/1.1"</tt>.</dd>
+            <dd>Protocol version string. For this document, MUST be <tt>&quot;ADP/1.1&quot;</tt>.</dd>
             </dl>
             <dl spacing="compact"><dt><tt>identity</tt> (object, REQUIRED)</dt>
             <dd>Agent identity block (Section <xref target="identity-block"/>).</dd>
@@ -373,9 +351,9 @@ _agent._tcp.{domain}.  IN  SRV  <priority> <weight> <port> <target>
             <dd>Map of interface type to URL, e.g. <tt>html</tt>, <tt>api</tt>, <tt>chat</tt>.</dd>
             </dl>
             <dl spacing="compact"><dt><tt>relationships</tt> (array, OPTIONAL)</dt>
-            <dd>Known peer Agents. Each entry contains <tt>type</tt>, <tt>id</tt>, <tt>name</tt>, optional</dd>
+            <dd>Known peer Agents. Each entry contains <tt>type</tt>, <tt>id</tt>, <tt>name</tt>, optional <tt>trust</tt> level, and optional <tt>since</tt> timestamp.</dd>
             </dl>
-            <t><tt>trust</tt> level, and optional <tt>since</tt> timestamp.</t>
+            
             <dl spacing="compact"><dt><tt>security</tt> (object, REQUIRED)</dt>
             <dd>Security configuration (Section <xref target="security-block"/>).</dd>
             </dl>
@@ -398,8 +376,7 @@ _agent._tcp.{domain}.  IN  SRV  <priority> <weight> <port> <target>
             </dl>
         </section>
         <section anchor="identity-block" title="Identity Block">
-            <dl spacing="compact"><dt>Contains</dt>
-            </dl>
+            
             <ul spacing="compact">
               <li><tt>id</tt> (REQUIRED): Agent URI <tt>agent:{domain}</tt>.</li>
               <li><tt>domain</tt> (REQUIRED): Canonical FQDN.</li>
@@ -407,7 +384,7 @@ _agent._tcp.{domain}.  IN  SRV  <priority> <weight> <port> <target>
               <li><tt>owner</tt> (REQUIRED): Display name of the entity operating the Agent.</li>
               <li><tt>created</tt> (REQUIRED): ISO 8601 creation timestamp.</li>
               <li><tt>publicKey</tt> (REQUIRED): Object with:</li>
-              <li><tt>algorithm</tt> (REQUIRED): <tt>"ed25519"</tt>.</li>
+              <li><tt>algorithm</tt> (REQUIRED): <tt>&quot;ed25519&quot;</tt>.</li>
               <li><tt>fingerprint</tt> (REQUIRED): <tt>ed25519:&lt;base64url-sha256&gt;</tt> as defined in</li>
             </ul>
             <t>DNS-AID and the fallback TXT record.</t>
@@ -418,8 +395,7 @@ _agent._tcp.{domain}.  IN  SRV  <priority> <weight> <port> <target>
             <t>corresponding private key, encoded as <tt>signature:&lt;base64&gt;</tt>.</t>
         </section>
         <section anchor="endpoints-block" title="Endpoints Block">
-            <dl spacing="compact"><dt>Contains</dt>
-            </dl>
+            
             <ul spacing="compact">
               <li><tt>discovery</tt>: Landing page URL (HTTPS).</li>
               <li><tt>wellKnown</tt>: Canonical Well-Known URL (HTTPS).</li>
@@ -430,8 +406,7 @@ _agent._tcp.{domain}.  IN  SRV  <priority> <weight> <port> <target>
             </ul>
         </section>
         <section anchor="capabilities-block" title="Capabilities Block">
-            <dl spacing="compact"><dt>Each capability object describes a skill the Agent offers</dt>
-            </dl>
+            
             <ul spacing="compact">
               <li><tt>id</tt> (REQUIRED): Unique capability identifier (e.g., <tt>chat</tt>, <tt>code-review</tt>).</li>
               <li><tt>name</tt> (REQUIRED): Human-readable name.</li>
@@ -521,24 +496,22 @@ _agent._tcp.{domain}.  IN  SRV  <priority> <weight> <port> <target>
           <t>rendering. The page serves as the human-facing Agent card and MUST embed</t>
           <t>structured data for machine consumption.</t>
         <section title="JSON-LD Embedding">
-            <t>The page MUST include a <tt>&lt;script type="application/ld+json"&gt;</tt> block</t>
+            <t>The page MUST include a <tt>&lt;script type=&quot;application/ld+json&quot;&gt;</tt> block</t>
             <t>containing the complete Agent metadata as a JSON-LD document, using the</t>
             <t>context URI <tt>https://raw.githubusercontent.com/harrylian8766/adp-protocol/main/schemas/v1.1</tt>.</t>
         </section>
         <section title="HTML Meta Tags">
             <t>The page SHOULD include the following <tt>&lt;meta&gt;</tt> elements in the document</t>
-            <dl spacing="compact"><dt><tt>&lt;head&gt;</tt></dt>
-            </dl>
+            
             <ul spacing="compact">
-              <li><tt>&lt;meta name="agent-id" content="agent:{domain}"&gt;</tt></li>
-              <li><tt>&lt;meta name="agent-protocol" content="ADP/1.1"&gt;</tt></li>
-              <li><tt>&lt;meta name="agent-fingerprint" content="ed25519:..."&gt;</tt></li>
+              <li><tt>&lt;meta name=&quot;agent-id&quot; content=&quot;agent:{domain}&quot;&gt;</tt></li>
+              <li><tt>&lt;meta name=&quot;agent-protocol&quot; content=&quot;ADP/1.1&quot;&gt;</tt></li>
+              <li><tt>&lt;meta name=&quot;agent-fingerprint&quot; content=&quot;ed25519:...&quot;&gt;</tt></li>
             </ul>
         </section>
         <section title="Semantic HTML">
             <t>To enable browser-based agent interaction without JavaScript, Agents MAY</t>
-            <dl spacing="compact"><dt>use semantic custom elements</dt>
-            </dl>
+            
             <ul spacing="compact">
               <li><tt>&lt;agent-card&gt;</tt>: Root element for the Agent profile.</li>
               <li><tt>&lt;capability-list&gt;</tt>: Container for capability entries.</li>
@@ -554,8 +527,7 @@ _agent._tcp.{domain}.  IN  SRV  <priority> <weight> <port> <target>
             <t>discovery.</t>
         </section>
         <section title="Connection Handshake">
-            <dl spacing="compact"><dt>Upon WebSocket connection, the client MUST send an <tt>adp_handshake</tt> frame</dt>
-            </dl>
+            
             <figure><artwork><![CDATA[
 {
   "id": "<uuid>",
@@ -572,8 +544,7 @@ _agent._tcp.{domain}.  IN  SRV  <priority> <weight> <port> <target>
         </section>
         <section title="Message Format">
             <t>All messages after handshake MUST be JSON objects (one per WebSocket</t>
-            <dl spacing="compact"><dt>frame, JSON Lines <xref target="RFC7464"/>) with the following structure</dt>
-            </dl>
+            
             <figure><artwork><![CDATA[
 {
   "id": "<uuid>",
@@ -610,8 +581,7 @@ _agent._tcp.{domain}.  IN  SRV  <priority> <weight> <port> <target>
         </section>
       </section>
       <section title="HTTP Endpoints">
-          <dl spacing="compact"><dt>In addition to the WebSocket chat endpoint, ADP Agents MAY expose</dt>
-          </dl>
+          
         <section title="Task Endpoint">
             <figure><artwork><![CDATA[
 POST /agent/tasks
@@ -644,8 +614,7 @@ Content-Type: application/json
     </section>
     <section title="Security Considerations">
       <section title="Trust Escalation Model">
-          <dl spacing="compact"><dt>ADP v1.1 defines a layered trust escalation</dt>
-          </dl>
+          
           <figure><artwork><![CDATA[
 Level 1: dns-verified
   ├── DNSSEC-validated SVCB response
@@ -692,8 +661,7 @@ Level 4: peer-verified
           <t>MUST NOT be used for public-facing Agents.</t>
       </section>
       <section title="Private Agents">
-          <dl spacing="compact"><dt>Agents that are not intended for public discovery</dt>
-          </dl>
+          
           <ul spacing="compact">
             <li>Method A: Do not publish SVCB or TXT records.</li>
             <li>Method B: Return HTTP 403 from the Well-Known endpoint.</li>
@@ -719,8 +687,7 @@ Level 4: peer-verified
     <section title="IANA Considerations">
       <section title="Well-Known URI Registration">
           <t>IANA is requested to register the following Well-Known URI suffix in the</t>
-          <dl spacing="compact"><dt>"Well-Known URIs" registry</dt>
-          </dl>
+          
           <ul spacing="compact">
             <li>URI suffix: <tt>agent</tt></li>
             <li>Change controller: IETF</li>
@@ -735,9 +702,8 @@ Level 4: peer-verified
           <t>document does not request independent registration of these keys.</t>
       </section>
       <section title="Service Name Registration">
-          <t>IANA has registered the following service name in the "Service Name and</t>
-          <dl spacing="compact"><dt>Transport Protocol Port Number Registry"</dt>
-          </dl>
+          <t>IANA has registered the following service name in the &quot;Service Name and</t>
+          
           <ul spacing="compact">
             <li>Service Name: <tt>ai-adp</tt></li>
             <li>Transport Protocol: TCP</li>
@@ -749,8 +715,7 @@ Level 4: peer-verified
           </ul>
       </section>
       <section title="Media Type Registration">
-          <dl spacing="compact"><dt>IANA is requested to register the following media type</dt>
-          </dl>
+          
           <ul spacing="compact">
             <li>Type name: <tt>application</tt></li>
             <li>Subtype name: <tt>adp+json</tt></li>
@@ -791,8 +756,8 @@ Level 4: peer-verified
         <t>and for pointing to DNS-AID as an emerging standard for Agent DNS</t>
         <t>discovery. The DNS-AID authors (Richard Mozley et al.) provided a clean</t>
         <t>SvcParamKey registration base that ADP builds upon.</t>
-        <t>The three-layer architecture and the principle of "solving at the lowest</t>
-        <t>possible layer" were inspired by discussions with Pro about the</t>
+        <t>The three-layer architecture and the principle of &quot;solving at the lowest</t>
+        <t>possible layer&quot; were inspired by discussions with Pro about the</t>
         <t>relationship between domain identity, DNS discovery, and Web-native Agent</t>
         <t>interaction.</t>
 
