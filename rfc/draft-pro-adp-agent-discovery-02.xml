@@ -929,23 +929,134 @@ Email: TBD
       ]]></artwork></figure>
     </section>
     <references title="Normative References">
-      <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml-doi/reference.RFC1035.xml"/>
-      <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml-doi/reference.RFC2782.xml"/>
-      <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml-doi/reference.RFC6455.xml"/>
-      <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml-doi/reference.RFC6698.xml"/>
-      <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml-doi/reference.RFC6838.xml"/>
-      <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml-doi/reference.RFC7301.xml"/>
-      <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml-doi/reference.RFC8032.xml"/>
-      <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml-doi/reference.RFC8259.xml"/>
-      <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml-doi/reference.RFC8615.xml"/>
-      <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml-doi/reference.RFC9364.xml"/>
-      <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml-doi/reference.RFC6901.xml"/>
-      <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml-doi/reference.RFC9460.xml"/>
-      <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml-ids/reference.I-D.mozleywilliams-dnsop-dnsaid.xml"/>
+    <reference anchor="RFC1035" target="https://www.rfc-editor.org/info/rfc1035">
+      <front>
+        <title>Domain names - implementation and specification</title>
+        <author initials="P." surname="Mockapetris" fullname="P. Mockapetris"/>
+        <date month="November" year="1987"/>
+        <seriesInfo name="STD" value="13"/>
+      </front>
+    </reference>
+    <reference anchor="RFC2782" target="https://www.rfc-editor.org/info/rfc2782">
+      <front>
+        <title>A DNS RR for specifying the location of services (DNS SRV)</title>
+        <author initials="A." surname="Gulbrandsen" fullname="A. Gulbrandsen"/>
+        <author initials="P." surname="Vixie" fullname="P. Vixie"/>
+        <author initials="L." surname="Esibov" fullname="L. Esibov"/>
+        <date month="February" year="2000"/>
+      </front>
+    </reference>
+    <reference anchor="RFC6455" target="https://www.rfc-editor.org/info/rfc6455">
+      <front>
+        <title>The WebSocket Protocol</title>
+        <author initials="I." surname="Fette" fullname="I. Fette"/>
+        <author initials="A." surname="Melnikov" fullname="A. Melnikov"/>
+        <date month="December" year="2011"/>
+      </front>
+    </reference>
+    <reference anchor="RFC6698" target="https://www.rfc-editor.org/info/rfc6698">
+      <front>
+        <title>The DNS-Based Authentication of Named Entities (DANE) Transport Layer Security (TLS) Protocol: TLSA</title>
+        <author initials="P." surname="Hoffman" fullname="P. Hoffman"/>
+        <author initials="J." surname="Schlyter" fullname="J. Schlyter"/>
+        <date month="August" year="2012"/>
+      </front>
+    </reference>
+    <reference anchor="RFC6838" target="https://www.rfc-editor.org/info/rfc6838">
+      <front>
+        <title>Media Type Specifications and Registration Procedures</title>
+        <author initials="N." surname="Freed" fullname="N. Freed"/>
+        <author initials="J." surname="Klensin" fullname="J. Klensin"/>
+        <author initials="T." surname="Hansen" fullname="T. Hansen"/>
+        <date month="January" year="2013"/>
+        <seriesInfo name="BCP" value="13"/>
+      </front>
+    </reference>
+    <reference anchor="RFC7301" target="https://www.rfc-editor.org/info/rfc7301">
+      <front>
+        <title>Transport Layer Security (TLS) Application-Layer Protocol Negotiation Extension</title>
+        <author initials="S." surname="Friedl" fullname="S. Friedl"/>
+        <author initials="A." surname="Popov" fullname="A. Popov"/>
+        <author initials="A." surname="Langley" fullname="A. Langley"/>
+        <author initials="E." surname="Stephan" fullname="E. Stephan"/>
+        <date month="July" year="2014"/>
+      </front>
+    </reference>
+    <reference anchor="RFC8032" target="https://www.rfc-editor.org/info/rfc8032">
+      <front>
+        <title>Edwards-Curve Digital Signature Algorithm (EdDSA)</title>
+        <author initials="S." surname="Josefsson" fullname="S. Josefsson"/>
+        <author initials="I." surname="Liusvaara" fullname="I. Liusvaara"/>
+        <date month="January" year="2017"/>
+      </front>
+    </reference>
+    <reference anchor="RFC8259" target="https://www.rfc-editor.org/info/rfc8259">
+      <front>
+        <title>The JavaScript Object Notation (JSON) Data Interchange Format</title>
+        <author initials="T." surname="Bray" fullname="T. Bray"/>
+        <date month="December" year="2017"/>
+        <seriesInfo name="STD" value="90"/>
+      </front>
+    </reference>
+    <reference anchor="RFC8615" target="https://www.rfc-editor.org/info/rfc8615">
+      <front>
+        <title>Well-Known Uniform Resource Identifiers (URIs)</title>
+        <author initials="M." surname="Nottingham" fullname="M. Nottingham"/>
+        <date month="May" year="2019"/>
+      </front>
+    </reference>
+    <reference anchor="RFC9364" target="https://www.rfc-editor.org/info/rfc9364">
+      <front>
+        <title>DNS-Based Authentication of Named Entities (DANE) TLSA for SMTP</title>
+        <author initials="V." surname="Dukhovni" fullname="V. Dukhovni"/>
+        <author initials="W." surname="Hardaker" fullname="W. Hardaker"/>
+        <date month="February" year="2023"/>
+      </front>
+    </reference>
+    <reference anchor="RFC6901" target="https://www.rfc-editor.org/info/rfc6901">
+      <front>
+        <title>JavaScript Object Notation (JSON) Pointer</title>
+        <author initials="P." surname="Bryan" fullname="P. Bryan"/>
+        <author initials="K." surname="Zyp" fullname="K. Zyp"/>
+        <author initials="M." surname="Nottingham" fullname="M. Nottingham"/>
+        <date month="April" year="2013"/>
+      </front>
+    </reference>
+    <reference anchor="RFC9460" target="https://www.rfc-editor.org/info/rfc9460">
+      <front>
+        <title>Service Binding and Parameter Specification via the DNS (SVCB and HTTPS Resource Records)</title>
+        <author initials="B." surname="Schwartz" fullname="B. Schwartz"/>
+        <author initials="M." surname="Bishop" fullname="M. Bishop"/>
+        <author initials="E." surname="Nygren" fullname="E. Nygren"/>
+        <date month="November" year="2023"/>
+      </front>
+    </reference>
+    <reference anchor="I-D.mozleywilliams-dnsop-dnsaid" target="https://datatracker.ietf.org/doc/draft-mozleywilliams-dnsop-dnsaid/">
+      <front>
+        <title>DNS-AID: DNS Agent Identity Discovery Using SVCB Resource Records</title>
+        <author initials="L." surname="Mozley-Williams" fullname="L. Mozley-Williams"/>
+        <date year="2025"/>
+      </front>
+    </reference>
     </references>
     <references title="Informative References">
-      <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml-doi/reference.RFC7033.xml"/>
-      <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml-ids/reference.I-D.draft-pro-adp-agent-discovery-00.xml"/>
+    <reference anchor="RFC7033" target="https://www.rfc-editor.org/info/rfc7033">
+      <front>
+        <title>WebFinger</title>
+        <author initials="P." surname="Jones" fullname="P. Jones"/>
+        <author initials="G." surname="Salgueiro" fullname="G. Salgueiro"/>
+        <author initials="M." surname="Jones" fullname="M. Jones"/>
+        <author initials="J." surname="Smarr" fullname="J. Smarr"/>
+        <date month="September" year="2013"/>
+      </front>
+    </reference>
+    <reference anchor="draft-pro-adp-agent-discovery-00" target="https://datatracker.ietf.org/doc/draft-pro-adp-agent-discovery-00/">
+      <front>
+        <title>Agent Discovery Protocol (ADP)</title>
+        <author initials="H." surname="Lian" fullname="H. Lian"/>
+        <date month="June" year="2026"/>
+      </front>
+    </reference>
     </references>
   </back>
 
