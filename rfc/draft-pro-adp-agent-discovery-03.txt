@@ -1,0 +1,1512 @@
+
+
+
+
+Network Working Group                                          Bin. Lian
+Internet-Draft                                                 aipair.ai
+Intended status: Informational                              18 June 2026
+Expires: 20 December 2026
+
+
+     Agent Discovery Protocol (ADP) v1.1 — Well-Known Metadata and
+                           Interaction Layer
+                    draft-pro-adp-agent-discovery-03
+
+Abstract
+
+   This document defines the Agent Discovery Protocol (ADP) v1.1, a
+
+   layered protocol for discovering, verifying, and interacting with AI
+
+   Agents on the Internet.  ADP delegates DNS discovery to DNS-AID (SVCB
+
+   records) and defines a Well-Known JSON metadata format, an
+
+   Ed25519-based identity model, and the Agent Gateway Protocol (AGP)
+
+   for real-time WebSocket messaging.  The protocol is designed to be
+
+   decentralized, standards-based, and incremental — clients escalate
+
+   from DNS to HTTP to WebSocket only as needed.
+
+Status of This Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at https://datatracker.ietf.org/drafts/current/.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   This Internet-Draft will expire on 20 December 2026.
+
+
+
+
+
+
+
+Lian                    Expires 20 December 2026                [Page 1]
+
+Internet-Draft             adp-agent-discovery                 June 2026
+
+
+Copyright Notice
+
+   Copyright (c) 2026 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents (https://trustee.ietf.org/
+   license-info) in effect on the date of publication of this document.
+   Please review these documents carefully, as they describe your rights
+   and restrictions with respect to this document.
+
+Table of Contents
+
+   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   3
+     1.1.  Background  . . . . . . . . . . . . . . . . . . . . . . .   3
+     1.2.  Relationship to DNS-AID . . . . . . . . . . . . . . . . .   4
+     1.3.  Changes from -00  . . . . . . . . . . . . . . . . . . . .   4
+     1.4.  Design Goals  . . . . . . . . . . . . . . . . . . . . . .   5
+   2.  Terminology . . . . . . . . . . . . . . . . . . . . . . . . .   6
+   3.  Protocol Overview . . . . . . . . . . . . . . . . . . . . . .   6
+   4.  Layer 1: DNS Discovery (DNS-AID)  . . . . . . . . . . . . . .   8
+     4.1.  SVCB Record (RECOMMENDED) . . . . . . . . . . . . . . . .   8
+       4.1.1.  SvcParamKey Usage in ADP  . . . . . . . . . . . . . .   8
+       4.1.2.  Hosted Agents (TargetName)  . . . . . . . . . . . . .   9
+       4.1.3.  Organization Index (AliasMode)  . . . . . . . . . . .   9
+     4.2.  TLSA Record (RECOMMENDED with DNSSEC) . . . . . . . . . .   9
+     4.3.  DNSSEC  . . . . . . . . . . . . . . . . . . . . . . . . .  10
+   5.  Fallback Discovery: TXT + SRV . . . . . . . . . . . . . . . .  10
+     5.1.  TXT Record  . . . . . . . . . . . . . . . . . . . . . . .  10
+     5.2.  SRV Record  . . . . . . . . . . . . . . . . . . . . . . .  11
+     5.3.  Fallback Procedure  . . . . . . . . . . . . . . . . . . .  11
+   6.  Layer 2: Well-Known Metadata  . . . . . . . . . . . . . . . .  11
+     6.1.  Endpoint  . . . . . . . . . . . . . . . . . . . . . . . .  11
+     6.2.  Content Type  . . . . . . . . . . . . . . . . . . . . . .  12
+     6.3.  Schema  . . . . . . . . . . . . . . . . . . . . . . . . .  12
+       6.3.1.  Top-Level Members . . . . . . . . . . . . . . . . . .  12
+       6.3.2.  Identity Block  . . . . . . . . . . . . . . . . . . .  12
+       6.3.3.  Endpoints Block . . . . . . . . . . . . . . . . . . .  13
+       6.3.4.  Capabilities Block  . . . . . . . . . . . . . . . . .  13
+       6.3.5.  Security Block  . . . . . . . . . . . . . . . . . . .  14
+       6.3.6.  Example . . . . . . . . . . . . . . . . . . . . . . .  14
+     6.4.  Caching . . . . . . . . . . . . . . . . . . . . . . . . .  15
+   7.  Layer 3: Interaction Endpoints  . . . . . . . . . . . . . . .  16
+     7.1.  HTML Landing Page . . . . . . . . . . . . . . . . . . . .  16
+       7.1.1.  JSON-LD Embedding . . . . . . . . . . . . . . . . . .  16
+       7.1.2.  HTML Meta Tags  . . . . . . . . . . . . . . . . . . .  16
+       7.1.3.  Semantic HTML . . . . . . . . . . . . . . . . . . . .  16
+     7.2.  Agent Gateway Protocol (AGP)  . . . . . . . . . . . . . .  16
+
+
+
+Lian                    Expires 20 December 2026                [Page 2]
+
+Internet-Draft             adp-agent-discovery                 June 2026
+
+
+       7.2.1.  Overview  . . . . . . . . . . . . . . . . . . . . . .  16
+       7.2.2.  Connection Handshake  . . . . . . . . . . . . . . . .  17
+       7.2.3.  Message Format  . . . . . . . . . . . . . . . . . . .  17
+       7.2.4.  Message Types . . . . . . . . . . . . . . . . . . . .  18
+       7.2.5.  Signature Computation . . . . . . . . . . . . . . . .  18
+     7.3.  HTTP Endpoints  . . . . . . . . . . . . . . . . . . . . .  18
+       7.3.1.  Task Endpoint . . . . . . . . . . . . . . . . . . . .  18
+       7.3.2.  Swarm Endpoint  . . . . . . . . . . . . . . . . . . .  18
+   8.  Security Considerations . . . . . . . . . . . . . . . . . . .  19
+     8.1.  Trust Escalation Model  . . . . . . . . . . . . . . . . .  19
+       8.1.1.  Freshness and Replay Protection . . . . . . . . . . .  19
+       8.1.2.  Fingerprint Verification  . . . . . . . . . . . . . .  20
+     8.2.  TLS Requirements  . . . . . . . . . . . . . . . . . . . .  20
+     8.3.  Private Agents  . . . . . . . . . . . . . . . . . . . . .  20
+       8.3.1.  Invitation Format . . . . . . . . . . . . . . . . . .  20
+   9.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  21
+     9.1.  Well-Known URI Registration . . . . . . . . . . . . . . .  21
+     9.2.  SvcParamKey Registration (via DNS-AID)  . . . . . . . . .  21
+     9.3.  Service Name Registration . . . . . . . . . . . . . . . .  21
+     9.4.  Media Type Registration . . . . . . . . . . . . . . . . .  22
+   10. Implementation Status . . . . . . . . . . . . . . . . . . . .  23
+     10.1.  Reference Implementation . . . . . . . . . . . . . . . .  23
+     10.2.  Backward Compatibility . . . . . . . . . . . . . . . . .  23
+   11. Acknowledgments . . . . . . . . . . . . . . . . . . . . . . .  24
+   12. Version History . . . . . . . . . . . . . . . . . . . . . . .  24
+   13. Normative References  . . . . . . . . . . . . . . . . . . . .  24
+   14. Informative References  . . . . . . . . . . . . . . . . . . .  26
+   Appendix A.  Appendix: HTML Landing Page Example  . . . . . . . .  26
+   Appendix B.  Author's Address . . . . . . . . . . . . . . . . . .  27
+   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .  27
+
+1.  Introduction
+
+1.1.  Background
+
+   AI Agents are evolving from chatbot plugins into autonomous,
+
+   internet-native entities.  Each platform (OpenAI, Dify, Coze)
+
+   provides its own directory and identity system, but there is no
+
+   universal discovery mechanism: an Agent on one platform cannot
+
+   natively discover an Agent on another without a bridging registry.
+
+   The Web solved an analogous problem decades ago: any resource can be
+
+   discovered through a combination of DNS names, well-known ports, and
+
+
+
+Lian                    Expires 20 December 2026                [Page 3]
+
+Internet-Draft             adp-agent-discovery                 June 2026
+
+
+   HTML interlinking.  ADP applies the same principle to Agents, adding
+
+   what the Web assumes but Agents require: structured capability
+
+   descriptions, cryptographic identity binding, and real-time
+
+   communication primitives.
+
+1.2.  Relationship to DNS-AID
+
+   DNS-AID [I-D.mozleywilliams-dnsop-dnsaid] defines the DNS discovery
+
+   layer for Agents using SVCB records [RFC9460].  It registers the
+
+   *following SvcParamKeys*
+
+   *  bap: Bulk Agent Protocol identifier (e.g., a2a, mcp).
+   *  cap: URI or URN of the Agent's capability descriptor.
+   *  cap-sha256: SHA-256 digest of the capability descriptor.
+   *  well-known: Path relative to /.well-known/ for the Agent's
+      metadata
+
+   document.
+
+   ADP v1.1 adopts DNS-AID as its normative DNS discovery mechanism.
+   The
+
+   ADP Well-Known JSON schema (Section 6) serves as the content format
+
+   pointed to by the well-known SvcParamKey.
+
+   If DNS-AID is unavailable (the DNS resolver does not support SVCB, or
+
+   the authoritative server has not published SVCB records), ADP
+   provides
+
+   a fallback path using TXT [RFC1035] and SRV [RFC2782] records as
+
+   documented in Section 5.
+
+1.3.  Changes from -00
+
+   *  Layer 1 (DNS): Replaced TXT+SRV as the primary mechanism with
+
+   reference to DNS-AID [I-D.mozleywilliams-dnsop-dnsaid].  The
+
+   original TXT+SRV scheme is retained as a documented fallback
+
+
+
+
+Lian                    Expires 20 December 2026                [Page 4]
+
+Internet-Draft             adp-agent-discovery                 June 2026
+
+
+   (Section 5).
+
+   *  Added TLSA [RFC6698] + DNSSEC [RFC9364] for DANE-style TLS
+
+   endpoint authentication.
+
+   *  Defined a trust escalation chain: dns-verified → dane-verified →
+
+   key-verified → peer-verified.
+
+   *  Protocol version string updated from ADP/1.0 to ADP/1.1.
+
+   *  Updated Well-Known schema with dns block and dane auth method.
+
+   *  Added implementation guidance for SVCB-first discovery clients.
+
+   *  Updated IANA media type registration to vendor tree:
+
+   application/vnd.adp+json (see Section 9.4).
+
+1.4.  Design Goals
+
+   *  *Decentralized*: No central registry; domain ownership is the root
+
+   of identity.
+
+   *  *Layered and incremental*: SVCB answers connectivity in one round
+
+   trip; Well-Known provides full metadata; WebSocket enables
+
+   real-time chat.  Do not escalate to a heavier layer when a lighter
+
+   one suffices.
+
+   *  *Standards-based*: Built on SVCB [RFC9460], TLSA [RFC6698],
+
+   DNSSEC [RFC9364], Well-Known URIs [RFC8615], WebSocket
+
+   [RFC6455], and Ed25519 [RFC8032].
+
+   *  *Aligned with IETF work*: DNS layer defers to DNS-AID
+
+   [I-D.mozleywilliams-dnsop-dnsaid].  ADP focuses on what happens
+
+   after discovery.
+
+   *  *Human-and-machine readable*: The root URL serves both a browser
+
+
+
+
+Lian                    Expires 20 December 2026                [Page 5]
+
+Internet-Draft             adp-agent-discovery                 June 2026
+
+
+   user and an automated client via JSON-LD embedding.
+
+   *  *Secure by default*: DNS-AID + TLSA/DANE anchors the TLS endpoint;
+
+   Ed25519 signatures authenticate messages end-to-end.
+
+2.  Terminology
+
+   Agent  An autonomous or semi-autonomous software entity identified by
+      a
+
+   domain name, capable of being discovered through DNS-AID + ADP and
+
+   interacting via standard Web protocols.
+
+   Agent Domain  A fully qualified domain name (FQDN) that serves as the
+      canonical
+
+   identifier for an Agent.  The Agent URI scheme is
+
+   agent:{domain}.
+
+   Discovery Client  Software that performs discovery to locate and
+      verify an Agent's
+
+   identity, capabilities, and endpoints.
+
+   Fingerprint  The SHA-256 hash of an Ed25519 public key, encoded in
+      base64url
+
+   without padding and prefixed with ed25519:.
+
+   AGP (Agent Gateway Protocol)  The WebSocket-based messaging protocol
+      defined in Section 7.2, used
+
+   for inter-agent communication after discovery.
+
+   DNS-AID  The DNS-based Agent Identity and Discovery mechanism defined
+      in
+
+   [I-D.mozleywilliams-dnsop-dnsaid], which serves as ADP's
+
+   normative Layer 1.
+
+3.  Protocol Overview
+
+   The Agent Discovery Protocol defines a three-layer discovery and
+
+
+
+
+Lian                    Expires 20 December 2026                [Page 6]
+
+Internet-Draft             adp-agent-discovery                 June 2026
+
+
+   *interaction stack*
+
+   *Layer 1 — DNS Discovery (delegated to DNS-AID):* A single SVCB
+
+   query at the Agent's domain name returns the target, port, IP
+
+   hints, ALPN protocol list, Agent protocol identifier (bap),
+
+   capability descriptor URI (cap), its SHA-256 digest (cap-sha256),
+
+   and the Well-Known URI path (well-known).  TLSA records enable
+
+   DANE-based TLS endpoint authentication.  TXT+SRV records serve
+
+   as fallback.
+
+   *Layer 2 — Well-Known Metadata (this document):* A GET request
+
+   to the Well-Known URI (default /.well-known/agent.json) returns
+
+   a JSON document containing the Agent's identity, capabilities,
+
+   relationships, security policies, and endpoint map.
+
+   *Layer 3 — Interaction Endpoints (this document):* An HTML
+
+   landing page at the domain root provides human-readable discovery
+
+   with embedded JSON-LD structured data.  WebSocket endpoints using
+
+   the Agent Gateway Protocol (AGP) enable real-time inter-agent
+
+   communication with Ed25519 signature authentication.
+
+     +-----------------------------------------------------+
+     |                 Agent Discovery Stack                |
+     +-----------------------------------------------------+
+     |  Layer 1: DNS-AID        |  Layer 2+3: ADP          |
+     |  (SVCB + TLSA)           |  (Well-Known + AGP)      |
+     +-----------------------------------------------------+
+     |          IETF dnsop WG              |  This Document |
+     +-----------------------------------------------------+
+
+
+                                  Figure 1
+
+   *Core principle*: If SVCB answers your question, do not issue an HTTP
+
+
+
+
+Lian                    Expires 20 December 2026                [Page 7]
+
+Internet-Draft             adp-agent-discovery                 June 2026
+
+
+   request.  If Well-Known suffices, do not open a WebSocket.
+
+4.  Layer 1: DNS Discovery (DNS-AID)
+
+   ADP v1.1 delegates its DNS discovery layer to DNS-AID
+
+   [I-D.mozleywilliams-dnsop-dnsaid].  This section summarizes the
+
+   integration points; the normative specification resides in that
+
+   document.
+
+4.1.  SVCB Record (RECOMMENDED)
+
+   An ADP-compliant Agent SHOULD publish a SVCB record at its domain
+
+   name.
+
+   alice.example.com.  3600  IN  SVCB  1  . (
+       alpn="a2a,h2,h3"
+       port=443
+       ipv4hint=192.0.2.1
+       ipv6hint=2001:db8::1
+       bap=a2a
+       well-known=agent.json
+       cap=https://alice.example.com/capabilities/a2a.json
+       cap-sha256=<sha256-digest>
+   )
+
+                                  Figure 2
+
+4.1.1.  SvcParamKey Usage in ADP
+
+   alpn  The application-layer protocol negotiation IDs [RFC7301].  ADP
+
+   Agents SHOULD include the relevant Agent protocol identifier
+
+   (e.g., a2a) alongside standard HTTP protocol IDs (h2, h3).
+
+   bap  Bulk Agent Protocol identifier.  Separated from alpn so that
+
+   policy engines can match on Agent-level protocol without parsing
+
+   transport protocol negotiation.  ADP v1.1 defines the protocol
+
+   identifier a2a for the AGP messaging protocol (Section 7.2).
+
+   well-known  Path relative to the Well-Known URI namespace.  Discovery
+
+
+
+Lian                    Expires 20 December 2026                [Page 8]
+
+Internet-Draft             adp-agent-discovery                 June 2026
+
+
+   Clients MUST resolve this against
+
+   https://{target}/.well-known/{well-known}.  If absent, the
+
+   default path /.well-known/agent.json is used.
+
+   cap  URI or URN identifying the Agent's capability descriptor.  ADP
+
+   Agents SHOULD publish this as a URL to their capability document.
+
+   cap-sha256  SHA-256 digest of the capability descriptor at the time
+      of DNS
+
+   publishing.  Allows a Discovery Client to verify that the
+
+   capability document has not changed without re-fetching.
+
+4.1.2.  Hosted Agents (TargetName)
+
+   When an Agent is hosted by a third-party provider, the SVCB
+
+   TargetName field points to the provider's domain.
+
+   alice.example.com.  3600  IN  SVCB  1  provider.example.com. (
+       alpn="a2a,h2"
+       port=443
+       bap=a2a
+       well-known=agent.json
+   )
+
+                                  Figure 3
+
+4.1.3.  Organization Index (AliasMode)
+
+   Organizations MAY publish an index of their Agents using AliasMode.
+
+   _agents.example.com.  3600  IN  SVCB  0  alice.example.com.
+   _agents.example.com.  3600  IN  SVCB  0  bob.example.com.
+
+                                  Figure 4
+
+4.2.  TLSA Record (RECOMMENDED with DNSSEC)
+
+   ADP Agents SHOULD publish a TLSA record to enable DANE-based TLS
+
+   endpoint authentication.
+
+   _443._tcp.alice.example.com.  3600  IN  TLSA  3  1  1  <cert-sha256>
+
+
+
+Lian                    Expires 20 December 2026                [Page 9]
+
+Internet-Draft             adp-agent-discovery                 June 2026
+
+
+                                  Figure 5
+
+   *  TLSA records are only valid when the DNS zone is DNSSEC-signed
+
+   [RFC9364], to prevent downgrade attacks.
+
+   *  The RECOMMENDED usage is DANE-EE (3), selector SPKI (1), matching
+
+   type SHA-256 (1).
+
+   *  A Discovery Client that receives both a valid TLSA record and a
+
+   certificate that does not match MUST terminate the connection.
+
+4.3.  DNSSEC
+
+   All DNS records used for Agent discovery SHOULD be DNSSEC-signed.
+
+   TLSA records MUST be DNSSEC-signed to be trusted.
+
+5.  Fallback Discovery: TXT + SRV
+
+   When the DNS resolver or authoritative server does not support SVCB
+
+   queries (returns NODATA or NXDOMAIN for a SVCB query), Discovery
+
+   Clients SHOULD fall back to the following mechanism.  This section
+
+   preserves the Layer 1 from ADP v1.0 (-00) as a backward-compatible
+
+   alternative.
+
+5.1.  TXT Record
+
+_agent.{domain}.  IN  TXT  "v=ADP1.1; pk=ed25519:<fp>; wk=<url>; alpn=a2a"
+
+                               Figure 6
+
+   v (REQUIRED)  Protocol version.  MUST be ADP1, ADP1.0, or ADP1.1.
+
+   pk (REQUIRED)  Public key fingerprint.  Computed as SHA-256 of the
+      raw Ed25519
+
+   public key, encoded in base64url without padding.
+
+   wk (REQUIRED)  Full HTTPS URL to the Well-Known agent metadata
+      endpoint.
+
+
+
+
+Lian                    Expires 20 December 2026               [Page 10]
+
+Internet-Draft             adp-agent-discovery                 June 2026
+
+
+   alpn (OPTIONAL in fallback)  Application protocol identifier (e.g.,
+      a2a).
+
+   port (OPTIONAL)  Service port number.  Default: 443.
+
+   bap (OPTIONAL)  Agent protocol identifier.  Multi-record TXT: Values
+      exceeding
+
+   255 octets MAY be split across multiple TXT records at the same
+
+   owner name.  Reassembly concatenates RDATA in returned order.
+
+5.2.  SRV Record
+
+   _agent._tcp.{domain}.  IN  SRV  <priority> <weight> <port> <target>
+
+                                  Figure 7
+
+   If no SRV record is published, Discovery Clients SHOULD connect to
+
+   {domain} on TCP port 443.
+
+5.3.  Fallback Procedure
+
+   Query SVCB at {domain}.
+
+   If NODATA or NXDOMAIN, proceed to fallback.
+
+   Query TXT at _agent.{domain}.
+
+   Parse v, pk, wk fields.
+
+   Query SRV at _agent._tcp.{domain} to locate host:port.
+
+   Proceed to Layer 2 (Section 6) using the resolved URL and host.
+
+   Discovery Clients that successfully use the fallback path SHOULD
+
+   indicate this in their user agent or log, as the security properties
+
+   of fallback discovery are weaker than SVCB-based discovery (no DANE
+
+   support, weaker path validation).
+
+6.  Layer 2: Well-Known Metadata
+
+6.1.  Endpoint
+
+
+
+
+Lian                    Expires 20 December 2026               [Page 11]
+
+Internet-Draft             adp-agent-discovery                 June 2026
+
+
+   GET https://{domain}/.well-known/agent.json
+
+                                  Figure 8
+
+6.2.  Content Type
+
+   *The server MUST respond with Content-Type*
+
+   application/vnd.adp+json (vendor-tree media type registered per
+
+   Section 9.4).  Prior to formal registration, servers MAY use
+
+   application/json as a transitional content type.
+
+6.3.  Schema
+
+6.3.1.  Top-Level Members
+
+   *The JSON document contains the following top-level members*
+
+   protocol  REQUIRED.  Protocol version string.  MUST be ADP/1.1.
+
+   identity  REQUIRED.  Identity block (Section 6.3.2).
+
+   endpoints  REQUIRED.  Endpoints block (Section 6.3.3).
+
+   capabilities  REQUIRED.  Capabilities block (Section 6.3.4).
+
+   security  RECOMMENDED.  Security block (Section 6.3.5).
+
+   policies  OPTIONAL.  Privacy, terms, and data handling policies.
+
+   availability  OPTIONAL.  Status and uptime information.
+
+   meta  OPTIONAL.  Generator, version, and documentation references.
+
+6.3.2.  Identity Block
+
+   *The identity block MUST contain*
+
+   id  Agent URI in the form agent:{domain}.
+
+   domain  The Agent's FQDN.
+
+   name  Human-readable Agent name.
+
+   publicKey  Object containing:
+
+
+
+
+Lian                    Expires 20 December 2026               [Page 12]
+
+Internet-Draft             adp-agent-discovery                 June 2026
+
+
+   *  algorithm: MUST be ed25519.
+   *  fingerprint: SHA-256 of the Ed25519 public key, encoded in
+
+   base64url without padding, prefixed with ed25519:.
+
+   *  full: PEM-encoded Ed25519 public key (if verification needed).
+   *  proof: OPTIONAL.  Self-signature proving key possession.
+
+6.3.3.  Endpoints Block
+
+   At minimum, the wellKnown endpoint MUST be present.  Additional
+
+   *endpoints provide entry points for different interaction modes*
+
+   wellKnown  URL of this document (self-referential).
+
+   discovery  HTML landing page URL.
+
+   chat  WebSocket URL for AGP real-time messaging.
+
+   tasks  REST endpoint for asynchronous task submission.
+
+   swarm  REST endpoint for multi-agent swarm coordination.
+
+   webhook  REST endpoint for external event callbacks.
+
+6.3.4.  Capabilities Block
+
+   *Each capability is an object with*
+
+   id  Unique capability identifier.
+
+   name  Human-readable name.
+
+   description  Free-text description.
+
+   input  Array of accepted MIME types or tokens (e.g., `["text",
+      "image",
+
+   "file"]`).
+
+   output  Array of produced MIME types or tokens.
+
+   interfaces  Array of supported interface modes (e.g., ["chat",
+      "api"]).
+
+   languages  Array of BCP 47 language tags.
+
+
+
+
+Lian                    Expires 20 December 2026               [Page 13]
+
+Internet-Draft             adp-agent-discovery                 June 2026
+
+
+   pricing  Object with model (free, per_use, subscription) and optional
+
+   details.
+
+6.3.5.  Security Block
+
+   tlsRequired  MUST be true per Section 8.2.
+
+   minProtocolVersion  Minimum ADP protocol version accepted.
+
+   authMethods  Array of supported authentication methods.  All
+      implementations
+
+   MUST support pubkey.  MAY also support bearer_token.
+
+   rateLimit  Object with requestsPerMinute and burstSize for rate
+      limiting.
+
+6.3.6.  Example
+
+{
+  "protocol": "ADP/1.1",
+  "identity": {
+    "id": "agent:alice.example.com",
+    "domain": "alice.example.com",
+    "name": "Alice's Agent",
+    "publicKey": {
+      "algorithm": "ed25519",
+      "fingerprint": "ed25519:dGhpcyBpcyBhIHRlc3QgcHVibGljIGtleQ",
+      "full": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyE...\n-----END PUBLIC KEY-----"
+    }
+  },
+  "endpoints": {
+    "wellKnown": "https://alice.example.com/.well-known/agent.json",
+    "discovery": "https://alice.example.com/",
+    "chat": "wss://alice.example.com/agent/chat",
+    "tasks": "https://alice.example.com/agent/tasks",
+    "swarm": "https://alice.example.com/agent/swarm"
+  },
+  "capabilities": [
+    {
+      "id": "chat",
+      "name": "Conversational Chat",
+      "description": "General-purpose conversational AI",
+      "input": ["text", "image", "file"],
+      "output": ["text", "html"],
+      "interfaces": ["chat", "api"],
+      "languages": ["en", "zh"],
+
+
+
+Lian                    Expires 20 December 2026               [Page 14]
+
+Internet-Draft             adp-agent-discovery                 June 2026
+
+
+      "pricing": { "model": "free" }
+    }
+  ],
+  "security": {
+    "tlsRequired": true,
+    "minProtocolVersion": "ADP/1.1",
+    "authMethods": ["pubkey"],
+    "rateLimit": {
+      "requestsPerMinute": 60,
+      "burstSize": 10
+    }
+  },
+  "dns": {
+    "svcbVerified": true,
+    "dnssecSigned": true,
+    "dane": {
+      "supported": true,
+      "usage": "DANE-EE",
+      "selector": "SPKI",
+      "matchingType": "SHA-256"
+    }
+  }
+}
+
+                               Figure 9
+
+6.4.  Caching
+
+   Discovery Clients SHOULD cache Well-Known metadata with respect to
+   the
+
+   HTTP Cache-Control headers returned by the server.  If no explicit
+
+   cache directives are present, clients SHOULD apply a default TTL of
+
+   3600 seconds.
+
+   Clients MAY use the cap-sha256 SvcParamKey from DNS-AID to detect
+
+   changes to the capability descriptor without re-fetching the full
+
+   document.
+
+
+
+
+
+
+
+
+
+Lian                    Expires 20 December 2026               [Page 15]
+
+Internet-Draft             adp-agent-discovery                 June 2026
+
+
+7.  Layer 3: Interaction Endpoints
+
+7.1.  HTML Landing Page
+
+   The domain root (GET /) MUST return an HTML page suitable for both
+
+   human browsing and machine parsing.
+
+7.1.1.  JSON-LD Embedding
+
+   The page MUST embed a <script type="application/ld+json"> block
+
+   containing the Agent's full metadata (equivalent to the Well-Known
+
+   JSON content).
+
+7.1.2.  HTML Meta Tags
+
+   *The page SHOULD include the following meta tags*
+
+   <meta name="agent-id" content="agent:{domain}">
+   <meta name="agent-protocol" content="ADP/1.1">
+
+                                 Figure 10
+
+7.1.3.  Semantic HTML
+
+   Agent landing pages SHOULD use semantic HTML elements and custom
+
+   elements (e.g., <agent-card>) to describe capabilities and enable
+
+   human interaction.  An example landing page structure is provided
+
+   in Appendix A.
+
+7.2.  Agent Gateway Protocol (AGP)
+
+7.2.1.  Overview
+
+   AGP is a WebSocket-based messaging protocol that enables real-time
+
+   communication between Agents after discovery.  It uses JSON as the
+
+   message framing format, with Ed25519 signatures for per-message
+
+   authentication.
+
+
+
+
+
+Lian                    Expires 20 December 2026               [Page 16]
+
+Internet-Draft             adp-agent-discovery                 June 2026
+
+
+7.2.2.  Connection Handshake
+
+   *A Discovery Client establishes an AGP connection as follows*
+
+   Resolve the Agent's chat endpoint from the Well-Known metadata
+
+   (endpoints.chat).
+
+   Open a WebSocket connection to the resolved URL using WSS
+
+   (WebSocket Secure).
+
+   The connecting Agent sends a hello message containing its
+
+   Agent URI and public key fingerprint.
+
+   The receiving Agent responds with its own hello message.
+
+   Both sides verify the counterparty's public key fingerprint
+
+   against the value obtained from the Well-Known metadata.
+
+   Subsequent messages are signed and verified using Ed25519.
+
+7.2.3.  Message Format
+
+   Each AGP message is a single JSON object with the following
+
+   *structure*
+
+   {
+     "id": "<message-uuid>",
+     "from": "agent:alice.example.com",
+     "to": "agent:bob.example.com",
+     "type": "chat|task|system|ack",
+     "timestamp": "2026-06-18T10:00:00Z",
+     "signature": "ed25519:<base64url-signature>",
+     "body": {
+       "content": "<message content>",
+       "contentType": "text/plain|text/html|application/json",
+       "replyTo": "<optional-message-id>"
+     }
+   }
+
+                                 Figure 11
+
+
+
+
+
+
+Lian                    Expires 20 December 2026               [Page 17]
+
+Internet-Draft             adp-agent-discovery                 June 2026
+
+
+7.2.4.  Message Types
+
+   chat  Conversational message between Agents.
+
+   task  Asynchronous task request or result.
+
+   system  Protocol-level control messages (heartbeat, error,
+      disconnect).
+
+   ack  Acknowledgment of message receipt.
+
+7.2.5.  Signature Computation
+
+   The signature covers the following fields, concatenated with
+
+   *newlines*
+
+   {id}\n{from}\n{to}\n{type}\n{timestamp}\n{body.content}
+
+                                 Figure 12
+
+   The signature is computed using Ed25519 [RFC8032] and encoded as
+
+   base64url without padding, prefixed with ed25519:.
+
+7.3.  HTTP Endpoints
+
+7.3.1.  Task Endpoint
+
+   POST /agent/tasks
+   Content-Type: application/json
+
+   {
+     "task": "code-review",
+     "input": { "code": "...", "language": "python" },
+     "callback": "https://requester.example.com/agent/webhook"
+   }
+
+                                 Figure 13
+
+   The server responds with 202 Accepted and a task status URL.
+
+   Results are delivered to the callback endpoint when complete.
+
+7.3.2.  Swarm Endpoint
+
+
+
+
+
+
+Lian                    Expires 20 December 2026               [Page 18]
+
+Internet-Draft             adp-agent-discovery                 June 2026
+
+
+   POST /agent/swarm/join
+   Content-Type: application/json
+
+   {
+     "agent": "agent:alice.example.com",
+     "task": "collaborative-analysis",
+     "role": "participant"
+   }
+
+                                 Figure 14
+
+8.  Security Considerations
+
+8.1.  Trust Escalation Model
+
+   *ADP defines a progressive trust model*
+
+   dns-verified  The DNS record for the Agent has been resolved.  The
+      public key
+
+   fingerprint in the DNS record (SVCB bap or TXT pk) has been
+
+   retrieved.  No cryptographic verification has been performed.
+
+   dane-verified  The TLS endpoint certificate has been validated
+      against the
+
+   DNSSEC-signed TLSA record.  The transport channel is
+
+   authenticated at the DANE level.
+
+   key-verified  The full Ed25519 public key from the Well-Known
+      metadata has
+
+   been verified to match the fingerprint from the DNS record.  The
+
+   key is cryptographically bound to the domain.
+
+   peer-verified  Bidirectional signature verification has been
+      completed.  The
+
+   communication partner's identity is fully authenticated.
+
+8.1.1.  Freshness and Replay Protection
+
+   Each AGP message includes a timestamp.  Receivers MUST reject
+
+   messages with timestamps more than 300 seconds in the past or more
+
+
+
+Lian                    Expires 20 December 2026               [Page 19]
+
+Internet-Draft             adp-agent-discovery                 June 2026
+
+
+   than 60 seconds in the future (relative to the receiver's clock),
+
+   with appropriate clock skew tolerance.
+
+   Implementations SHOULD track recently seen message IDs to detect
+
+   replay attempts within the validity window.
+
+8.1.2.  Fingerprint Verification
+
+   Discovery Clients MUST verify that the SHA-256 hash of the full
+
+   Ed25519 public key obtained from the Well-Known metadata matches the
+
+   fingerprint published in the DNS record (SVCB or TXT).  If the
+
+   fingerprints do not match, the connection MUST be terminated and the
+
+   Agent MUST NOT be trusted.
+
+8.2.  TLS Requirements
+
+   All endpoints (Well-Known, WebSocket, REST) MUST be served over
+
+   TLS 1.3 or later.  Certificates MUST be valid and chain to a trusted
+
+   root CA.  Self-signed certificates are NOT acceptable for production
+
+   deployments, except in local development environments.
+
+   When TLSA records are published (Section 4.2), Discovery Clients
+   SHOULD
+
+   perform DANE verification in addition to standard PKI validation.
+
+8.3.  Private Agents
+
+   *Agents that do not wish to be publicly discoverable may*
+
+   *  Not publish _agent DNS records.
+   *  Return HTTP 404 or 403 from the Well-Known endpoint.
+   *  Require a bearer token for Well-Known access.
+   *  Use invitation-based discovery instead of DNS discovery.
+
+8.3.1.  Invitation Format
+
+   A private Agent may distribute invitations containing the
+
+
+
+
+Lian                    Expires 20 December 2026               [Page 20]
+
+Internet-Draft             adp-agent-discovery                 June 2026
+
+
+   *information normally obtained through DNS discovery*
+
+   {
+     "protocol": "ADP/1.1",
+     "invite": {
+       "code": "a1b2c3d4",
+       "agent": "agent:alice.example.com",
+       "wellKnown": "https://alice.example.com/.well-known/agent.json",
+       "pubkey": "ed25519:<fingerprint>",
+       "expires": "2026-12-31T00:00:00Z"
+     }
+   }
+
+                                 Figure 15
+
+9.  IANA Considerations
+
+9.1.  Well-Known URI Registration
+
+   IANA has denied registration of the "agent" Well-Known URI
+
+   [RFC8615] in case #1453939 (2026-06).  This document therefore
+
+   specifies the URI path /.well-known/agent.json as a de facto
+
+   convention pending future availability of the Well-Known URI registry
+
+   slot.  Implementers should be aware that this path has not been
+
+   formally registered.
+
+9.2.  SvcParamKey Registration (via DNS-AID)
+
+   The SvcParamKeys used by ADP (bap, cap, cap-sha256, well-known) are
+
+   registered through the DNS-AID specification
+
+   [I-D.mozleywilliams-dnsop-dnsaid].  ADP does not independently
+
+   request these registrations.
+
+9.3.  Service Name Registration
+
+   ADP uses the service name _agent for SRV records.  Formal service
+
+   name registration with IANA is pending.
+
+
+
+
+
+Lian                    Expires 20 December 2026               [Page 21]
+
+Internet-Draft             adp-agent-discovery                 June 2026
+
+
+9.4.  Media Type Registration
+
+   This document requests the registration of the following media type
+
+   *in the vendor tree*
+
+   Type name  application
+
+   Subtype name  vnd.adp+json
+
+   Required parameters  N/A
+
+   Optional parameters  N/A
+
+   Encoding considerations  binary.  The format is JSON-based and may
+      contain lines longer
+
+   than 998 octets and arbitrary octet sequences within string
+
+   values.  Per [RFC6838] Section 4.8, binary encoding is
+
+   appropriate.
+
+   Security considerations  See Section 8 of this document.
+
+   Interoperability considerations  Unknown JSON fields MUST be ignored
+      for forward compatibility.
+
+   The protocol field determines the schema version; clients
+
+   MUST check it before processing.
+
+   Published specification  This document (draft-pro-adp-agent-
+      discovery).
+
+   Applications that use this media type  AI Agent discovery clients,
+      DNS-AID resolvers, agent registries,
+
+   and agent gateway implementations.
+
+   Fragment identifier considerations  JSON Pointer [RFC6901] fragment
+      identifiers MAY be used.
+
+   Restrictions on usage  This media type is designed for use within the
+      ADP protocol and
+
+   is not recommended for use in email or other non-HTTP contexts.
+
+
+
+
+Lian                    Expires 20 December 2026               [Page 22]
+
+Internet-Draft             adp-agent-discovery                 June 2026
+
+
+   Provisional registration  No.
+
+   Additional information  Deprecated alias names: N/A
+
+   Magic number(s): N/A (JSON)
+
+   File extension(s): N/A
+
+   Macintosh file type code(s): N/A
+
+   OID(s): N/A
+
+   Intended usage  LIMITED USE.
+
+   Contact name  Bin Lian
+
+   Contact email  TBD
+
+   Author/Change controller  Bin Lian
+
+   Change controller  Bin Lian
+
+10.  Implementation Status
+
+10.1.  Reference Implementation
+
+   A reference implementation of ADP is available at
+
+   [https://github.com/harrylian8766/adp-
+   protocol](https://github.com/harrylian8766/adp-protocol).
+
+   *The reference implementation includes*
+
+   *  A DNS record generator for ADP-compliant zones.
+   *  A Well-Known metadata server.
+   *  An AGP WebSocket server and client library.
+   *  An HTML landing page template with JSON-LD embedding.
+
+10.2.  Backward Compatibility
+
+   ADP v1.1 is backward compatible with ADP v1.0 at the Well-Known
+
+   metadata layer.  v1.1 adds the dns block and dane auth method to
+
+   the schema; v1.0 clients that ignore unknown fields will function
+
+   correctly with v1.1 metadata.
+
+
+
+
+Lian                    Expires 20 December 2026               [Page 23]
+
+Internet-Draft             adp-agent-discovery                 June 2026
+
+
+   The fallback TXT+SRV discovery mechanism (Section 5) is identical to
+
+   the ADP v1.0 Layer 1, ensuring that pre-v1.1 Discovery Clients can
+
+   still locate Agents that have migrated to SVCB-based discovery.
+
+11.  Acknowledgments
+
+   The ADP protocol design draws on WebFinger [RFC7033], the
+
+   .well-known URI pattern [RFC8615], and the DNS-AID specification
+
+   [I-D.mozleywilliams-dnsop-dnsaid].
+
+12.  Version History
+
+   -00 (2026-06-09)  Initial draft.  Defined three-layer discovery stack
+      with TXT+SRV
+
+   as primary DNS mechanism.
+
+   -01 (2026-06-17)  Adopted DNS-AID (SVCB) as normative Layer 1.  Added
+      TLSA/DANE
+
+   support.  Defined trust escalation model.  Updated protocol
+
+   version to ADP/1.1.
+
+   -02 (2026-06-18)  Fixed markup and cross-reference errors.  Updated
+      media type
+
+   registration to vendor tree (application/vnd.adp+json).  Noted
+
+   Well-Known URI registration denial.  Added Private Agents and
+
+   Invitation Format sections.
+
+13.  Normative References
+
+   [RFC1035]  Mockapetris, P., "Domain names - implementation and
+              specification", STD 13, November 1987,
+              <https://www.rfc-editor.org/info/rfc1035>.
+
+   [RFC2782]  Gulbrandsen, A., Vixie, P., and L. Esibov, "A DNS RR for
+              specifying the location of services (DNS SRV)", February
+              2000, <https://www.rfc-editor.org/info/rfc2782>.
+
+
+
+
+
+Lian                    Expires 20 December 2026               [Page 24]
+
+Internet-Draft             adp-agent-discovery                 June 2026
+
+
+   [RFC6455]  Fette, I. and A. Melnikov, "The WebSocket Protocol",
+              December 2011, <https://www.rfc-editor.org/info/rfc6455>.
+
+   [RFC6698]  Hoffman, P. and J. Schlyter, "The DNS-Based Authentication
+              of Named Entities (DANE) Transport Layer Security (TLS)
+              Protocol: TLSA", August 2012,
+              <https://www.rfc-editor.org/info/rfc6698>.
+
+   [RFC6838]  Freed, N., Klensin, J., and T. Hansen, "Media Type
+              Specifications and Registration Procedures", BCP 13,
+              January 2013, <https://www.rfc-editor.org/info/rfc6838>.
+
+   [RFC7301]  Friedl, S., Popov, A., Langley, A., and E. Stephan,
+              "Transport Layer Security (TLS) Application-Layer Protocol
+              Negotiation Extension", July 2014,
+              <https://www.rfc-editor.org/info/rfc7301>.
+
+   [RFC8032]  Josefsson, S. and I. Liusvaara, "Edwards-Curve Digital
+              Signature Algorithm (EdDSA)", January 2017,
+              <https://www.rfc-editor.org/info/rfc8032>.
+
+   [RFC8259]  Bray, T., "The JavaScript Object Notation (JSON) Data
+              Interchange Format", STD 90, December 2017,
+              <https://www.rfc-editor.org/info/rfc8259>.
+
+   [RFC8615]  Nottingham, M., "Well-Known Uniform Resource Identifiers
+              (URIs)", May 2019,
+              <https://www.rfc-editor.org/info/rfc8615>.
+
+   [RFC9364]  Dukhovni, V. and W. Hardaker, "DNS-Based Authentication of
+              Named Entities (DANE) TLSA for SMTP", February 2023,
+              <https://www.rfc-editor.org/info/rfc9364>.
+
+   [RFC6901]  Bryan, P., Zyp, K., and M. Nottingham, "JavaScript Object
+              Notation (JSON) Pointer", April 2013,
+              <https://www.rfc-editor.org/info/rfc6901>.
+
+   [RFC9460]  Schwartz, B., Bishop, M., and E. Nygren, "Service Binding
+              and Parameter Specification via the DNS (SVCB and HTTPS
+              Resource Records)", November 2023,
+              <https://www.rfc-editor.org/info/rfc9460>.
+
+   [I-D.mozleywilliams-dnsop-dnsaid]
+              Mozley-Williams, L., "DNS-AID: DNS Agent Identity
+              Discovery Using SVCB Resource Records", 2025,
+              <https://datatracker.ietf.org/doc/draft-mozleywilliams-
+              dnsop-dnsaid/>.
+
+
+
+
+Lian                    Expires 20 December 2026               [Page 25]
+
+Internet-Draft             adp-agent-discovery                 June 2026
+
+
+14.  Informative References
+
+   [RFC7033]  Jones, P., Salgueiro, G., Jones, M., and J. Smarr,
+              "WebFinger", September 2013,
+              <https://www.rfc-editor.org/info/rfc7033>.
+
+   [draft-pro-adp-agent-discovery-00]
+              Lian, Bin., "Agent Discovery Protocol (ADP)", June 2026,
+              <https://datatracker.ietf.org/doc/draft-pro-adp-agent-
+              discovery-00/>.
+
+Appendix A.  Appendix: HTML Landing Page Example
+
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="agent-id" content="agent:alice.example.com">
+    <meta name="agent-protocol" content="ADP/1.1">
+    <title>Alice's Agent</title>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "protocol": "ADP/1.1",
+      "identity": {
+        "id": "agent:alice.example.com",
+        "domain": "alice.example.com",
+        "name": "Alice's Agent",
+        "publicKey": {
+          "algorithm": "ed25519",
+          "fingerprint": "ed25519:dGhpcyBpcyBhIHRlc3Q..."
+        }
+      },
+      "endpoints": {
+        "wellKnown": "https://alice.example.com/.well-known/agent.json",
+        "chat": "wss://alice.example.com/agent/chat"
+      },
+      "capabilities": [
+        {
+          "id": "chat",
+          "name": "Conversational Chat",
+          "description": "General-purpose conversational AI",
+          "input": ["text", "image", "file"],
+          "output": ["text", "html"],
+          "interfaces": ["chat", "api"],
+          "languages": ["en", "zh"],
+          "pricing": { "model": "free" }
+
+
+
+Lian                    Expires 20 December 2026               [Page 26]
+
+Internet-Draft             adp-agent-discovery                 June 2026
+
+
+        }
+      ]
+    }
+    </script>
+  </head>
+  <body>
+    <agent-card>
+      <h1>Alice's Agent</h1>
+      <p>General-purpose conversational AI agent.</p>
+      <capability-list>
+        <capability name="Chat" status="available"></capability>
+      </capability-list>
+      <connect-form action="/agent/connect">
+        <input name="from" placeholder="Your Agent ID (agent:...)">
+        <button type="submit">Connect</button>
+      </connect-form>
+    </agent-card>
+  </body>
+  </html>
+
+                                Figure 16
+
+Appendix B.  Author's Address
+
+   Bin Lian
+   aipair.ai
+   Email: TBD
+
+                                 Figure 17
+
+Author's Address
+
+   Bin Lian
+   aipair.ai
+   Email: TBD
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Lian                    Expires 20 December 2026               [Page 27]
