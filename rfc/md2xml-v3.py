@@ -350,17 +350,28 @@ def generate_xml(meta, body_parts):
         normative = meta.get('normative', [])
         informative = meta.get('informative', [])
         
+        def ref_url(ref):
+            # RFC vs I-D detection
+            if ref.startswith('RFC'):
+                return f'https://xml2rfc.ietf.org/public/rfc/bibxml-doi/reference.{ref}.xml'
+            elif ref.startswith('I-D.'):
+                return f'https://xml2rfc.ietf.org/public/rfc/bibxml-ids/reference.{ref}.xml'
+            elif ref.startswith('draft-'):
+                return f'https://xml2rfc.ietf.org/public/rfc/bibxml-ids/reference.I-D.{ref}.xml'
+            else:
+                return f'https://xml2rfc.ietf.org/public/rfc/bibxml-doi/reference.{ref}.xml'
+        
         if normative:
-            w('    <references title="Normative References">')
+            lines.append('    <references title="Normative References">')
             for ref in normative:
-                w(f'      <xi:include href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml-doi/reference.{ref}.xml"/>')
-            w('    </references>')
+                lines.append(f'      <xi:include href="{ref_url(ref)}"/>')
+            lines.append('    </references>')
         
         if informative:
-            w('    <references title="Informative References">')
+            lines.append('    <references title="Informative References">')
             for ref in informative:
-                w(f'      <xi:include href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml-doi/reference.{ref}.xml"/>')
-            w('    </references>')
+                lines.append(f'      <xi:include href="{ref_url(ref)}"/>')
+            lines.append('    </references>')
         
         w('  </back>')
     
