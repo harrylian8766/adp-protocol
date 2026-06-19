@@ -708,7 +708,7 @@ Content-Type: application/json
 }
 ~~~
 
-# Security Considerations
+# Security Considerations {#security-considerations}
 
 ## Trust Escalation Model
 
