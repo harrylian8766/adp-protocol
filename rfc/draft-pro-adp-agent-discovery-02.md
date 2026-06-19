@@ -35,10 +35,12 @@ normative:
   RFC8259:
   RFC8615:
   RFC9364:
+  RFC6901:
   RFC9460:
   I-D.mozleywilliams-dnsop-dnsaid:
 
 informative:
+  RFC7033:
   draft-pro-adp-agent-discovery-00:
 
 --- abstract
@@ -84,7 +86,7 @@ following SvcParamKeys:
   document.
 
 ADP v1.1 adopts DNS-AID as its normative DNS discovery mechanism.  The
-ADP Well-Known JSON schema ({{schema}}) serves as the content format
+ADP Well-Known JSON schema ({{well-known}}) serves as the content format
 pointed to by the well-known SvcParamKey.
 
 If DNS-AID is unavailable (the DNS resolver does not support SVCB, or
@@ -287,7 +289,7 @@ _agents.example.com.  3600  IN  SVCB  0  bob.example.com.
 ~~~
 {: #fig-svcb-alias title="SVCB AliasMode Agent Index"}
 
-## TLSA Record (RECOMMENDED with DNSSEC)
+## TLSA Record (RECOMMENDED with DNSSEC) {#tlsa}
 
 ADP Agents SHOULD publish a TLSA record to enable DANE-based TLS
 endpoint authentication.
@@ -364,14 +366,14 @@ If no SRV record is published, Discovery Clients SHOULD connect to
 3. Query TXT at `_agent.{domain}`.
 4. Parse v, pk, wk fields.
 5. Query SRV at `_agent._tcp.{domain}` to locate host:port.
-6. Proceed to Layer 2 ({{schema}}) using the resolved URL and host.
+6. Proceed to Layer 2 ({{well-known}}) using the resolved URL and host.
 
 Discovery Clients that successfully use the fallback path SHOULD
 indicate this in their user agent or log, as the security properties
 of fallback discovery are weaker than SVCB-based discovery (no DANE
 support, weaker path validation).
 
-# Layer 2: Well-Known Metadata {#schema}
+# Layer 2: Well-Known Metadata {#well-known}
 
 ## Endpoint
 
@@ -386,7 +388,7 @@ The server MUST respond with Content-Type:
 {{iana-media-type}}).  Prior to formal registration, servers MAY use
 `application/json` as a transitional content type.
 
-## Schema
+## Schema {#schema}
 
 ### Top-Level Members
 
@@ -929,12 +931,6 @@ The ADP protocol design draws on WebFinger {{RFC7033}}, the
   Invitation Format sections.
 
 --- back
-
-# Normative References
-
-# Informative References
-
-{{RFC7033}}
 
 # Appendix: HTML Landing Page Example {#appendix-html}
 
