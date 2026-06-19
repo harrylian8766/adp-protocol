@@ -61,9 +61,9 @@ def render_reference(anchor, info):
         out.append(f'        <date month="{month}" year="{year}"/>')
     else:
         out.append(f'        <date year="{year}"/>')
-    if "series" in info:
-        out.append(f'        <seriesInfo name="{info["series"][0]}" value="{info["series"][1]}"/>')
     out.append('      </front>')
+    if "series" in info:
+        out.append(f'    <seriesInfo name="{info["series"][0]}" value="{info["series"][1]}"/>')
     out.append('    </reference>')
     return '\n'.join(out)
 
