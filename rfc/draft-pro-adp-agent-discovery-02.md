@@ -20,7 +20,7 @@ pi: [toc, sortrefs, symrefs]
 author:
   -
     ins: H. Lian
-    name: Harry Lian
+    name: Bin Lian
     organization: AI Pair
     email: TBD
 
@@ -871,16 +871,16 @@ Intended usage:
 : LIMITED USE.
 
 Contact name:
-: Harry Lian
+: Bin Lian
 
 Contact email:
 : TBD
 
 Author/Change controller:
-: Harry Lian (AI Pair)
+: Bin Lian (AI Pair)
 
 Change controller:
-: Harry Lian (AI Pair)
+: Bin Lian (AI Pair)
 
 # Implementation Status
 
@@ -994,7 +994,7 @@ The ADP protocol design draws on WebFinger {{RFC7033}}, the
 # Author's Address
 
 ~~~
-Harry Lian
+Bin Lian
 AI Pair
 Email: TBD
 ~~~
