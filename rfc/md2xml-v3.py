@@ -28,6 +28,45 @@ def render_inline(text, refs_declared):
     text = re.sub(r'`([^`]+)`', lambda m: '<tt>' + esc(m.group(1)) + '</tt>', text)
     return text
 
+
+# Inline reference data (no external xi:include dependency)
+REF_DATA = {
+    "RFC1035": {"title": "Domain names - implementation and specification", "authors": [("P.", "Mockapetris", "P. Mockapetris")], "date": ("November", "1987"), "series": ["STD", "13"]},
+    "RFC2782": {"title": "A DNS RR for specifying the location of services (DNS SRV)", "authors": [("A.", "Gulbrandsen", "A. Gulbrandsen"), ("P.", "Vixie", "P. Vixie"), ("L.", "Esibov", "L. Esibov")], "date": ("February", "2000")},
+    "RFC6455": {"title": "The WebSocket Protocol", "authors": [("I.", "Fette", "I. Fette"), ("A.", "Melnikov", "A. Melnikov")], "date": ("December", "2011")},
+    "RFC6698": {"title": "The DNS-Based Authentication of Named Entities (DANE) Transport Layer Security (TLS) Protocol: TLSA", "authors": [("P.", "Hoffman", "P. Hoffman"), ("J.", "Schlyter", "J. Schlyter")], "date": ("August", "2012")},
+    "RFC6838": {"title": "Media Type Specifications and Registration Procedures", "authors": [("N.", "Freed", "N. Freed"), ("J.", "Klensin", "J. Klensin"), ("T.", "Hansen", "T. Hansen")], "date": ("January", "2013"), "series": ["BCP", "13"]},
+    "RFC6901": {"title": "JavaScript Object Notation (JSON) Pointer", "authors": [("P.", "Bryan", "P. Bryan"), ("K.", "Zyp", "K. Zyp"), ("M.", "Nottingham", "M. Nottingham")], "date": ("April", "2013")},
+    "RFC7033": {"title": "WebFinger", "authors": [("P.", "Jones", "P. Jones"), ("G.", "Salgueiro", "G. Salgueiro"), ("M.", "Jones", "M. Jones"), ("J.", "Smarr", "J. Smarr")], "date": ("September", "2013")},
+    "RFC7301": {"title": "Transport Layer Security (TLS) Application-Layer Protocol Negotiation Extension", "authors": [("S.", "Friedl", "S. Friedl"), ("A.", "Popov", "A. Popov"), ("A.", "Langley", "A. Langley"), ("E.", "Stephan", "E. Stephan")], "date": ("July", "2014")},
+    "RFC8032": {"title": "Edwards-Curve Digital Signature Algorithm (EdDSA)", "authors": [("S.", "Josefsson", "S. Josefsson"), ("I.", "Liusvaara", "I. Liusvaara")], "date": ("January", "2017")},
+    "RFC8259": {"title": "The JavaScript Object Notation (JSON) Data Interchange Format", "authors": [("T.", "Bray", "T. Bray")], "date": ("December", "2017"), "series": ["STD", "90"]},
+    "RFC8615": {"title": "Well-Known Uniform Resource Identifiers (URIs)", "authors": [("M.", "Nottingham", "M. Nottingham")], "date": ("May", "2019")},
+    "RFC9364": {"title": "DNS-Based Authentication of Named Entities (DANE) TLSA for SMTP", "authors": [("V.", "Dukhovni", "V. Dukhovni"), ("W.", "Hardaker", "W. Hardaker")], "date": ("February", "2023")},
+    "RFC9460": {"title": "Service Binding and Parameter Specification via the DNS (SVCB and HTTPS Resource Records)", "authors": [("B.", "Schwartz", "B. Schwartz"), ("M.", "Bishop", "M. Bishop"), ("E.", "Nygren", "E. Nygren")], "date": ("November", "2023")},
+    "I-D.mozleywilliams-dnsop-dnsaid": {"title": "DNS-AID: DNS Agent Identity Discovery Using SVCB Resource Records", "authors": [("L.", "Mozley-Williams", "L. Mozley-Williams")], "date": ("", "2025"), "target": "https://datatracker.ietf.org/doc/draft-mozleywilliams-dnsop-dnsaid/"},
+    "draft-pro-adp-agent-discovery-00": {"title": "Agent Discovery Protocol (ADP)", "authors": [("H.", "Lian", "H. Lian")], "date": ("June", "2026"), "target": "https://datatracker.ietf.org/doc/draft-pro-adp-agent-discovery-00/"},
+}
+
+def render_reference(anchor, info):
+    """Render a single reference element."""
+    target = info.get("target", f"https://www.rfc-editor.org/info/{anchor.lower()}")
+    month, year = info["date"]
+    out = [f'    <reference anchor="{anchor}" target="{target}">']
+    out.append('      <front>')
+    out.append(f'        <title>{esc(info["title"])}</title>')
+    for ins, sur, full in info["authors"]:
+        out.append(f'        <author initials="{ins}" surname="{sur}" fullname="{full}"/>')
+    if month:
+        out.append(f'        <date month="{month}" year="{year}"/>')
+    else:
+        out.append(f'        <date year="{year}"/>')
+    if "series" in info:
+        out.append(f'        <seriesInfo name="{info["series"][0]}" value="{info["series"][1]}"/>')
+    out.append('      </front>')
+    out.append('    </reference>')
+    return '\n'.join(out)
+
 def parse_front_matter(lines):
     """Parse YAML front matter."""
     meta = {'authors': [], 'normative': [], 'informative': []}
@@ -346,31 +385,20 @@ def generate_xml(meta, body_parts):
         w('  <back>')
         render_sections(back_sections, all_refs, lines, '    ')
         
-        # Auto-generate references
+        # Auto-generate references (inline, no external xi:include)
         normative = meta.get('normative', [])
         informative = meta.get('informative', [])
-        
-        def ref_url(ref):
-            # RFC vs I-D detection
-            if ref.startswith('RFC'):
-                return f'https://xml2rfc.ietf.org/public/rfc/bibxml-doi/reference.{ref}.xml'
-            elif ref.startswith('I-D.'):
-                return f'https://xml2rfc.ietf.org/public/rfc/bibxml-ids/reference.{ref}.xml'
-            elif ref.startswith('draft-'):
-                return f'https://xml2rfc.ietf.org/public/rfc/bibxml-ids/reference.I-D.{ref}.xml'
-            else:
-                return f'https://xml2rfc.ietf.org/public/rfc/bibxml-doi/reference.{ref}.xml'
         
         if normative:
             lines.append('    <references title="Normative References">')
             for ref in normative:
-                lines.append(f'      <xi:include href="{ref_url(ref)}"/>')
+                lines.append(render_reference(ref, REF_DATA[ref]))
             lines.append('    </references>')
         
         if informative:
             lines.append('    <references title="Informative References">')
             for ref in informative:
-                lines.append(f'      <xi:include href="{ref_url(ref)}"/>')
+                lines.append(render_reference(ref, REF_DATA[ref]))
             lines.append('    </references>')
         
         w('  </back>')
