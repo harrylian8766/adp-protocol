@@ -847,7 +847,8 @@ Content-Type: application/json
   </middle>
 
   <back>
-    <references title="Normative References">
+    <references>
+      <name>Normative References</name>
     <reference anchor="RFC1035" target="https://www.rfc-editor.org/info/rfc1035">
       <front>
         <title>Domain names - implementation and specification</title>
@@ -958,7 +959,8 @@ Content-Type: application/json
       </front>
     </reference>
     </references>
-    <references title="Informative References">
+    <references>
+      <name>Informative References</name>
     <reference anchor="RFC7033" target="https://www.rfc-editor.org/info/rfc7033">
       <front>
         <title>WebFinger</title>
