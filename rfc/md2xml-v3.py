@@ -394,13 +394,13 @@ def generate_xml(meta, body_parts):
         informative = meta.get('informative', [])
         
         if normative:
-            lines.append('    <references title="Normative References">')
+            lines.extend(['    <references>', '      <name>Normative References</name>'])
             for ref in normative:
                 lines.append(render_reference(ref, REF_DATA[ref]))
             lines.append('    </references>')
         
         if informative:
-            lines.append('    <references title="Informative References">')
+            lines.extend(['    <references>', '      <name>Informative References</name>'])
             for ref in informative:
                 lines.append(render_reference(ref, REF_DATA[ref]))
             lines.append('    </references>')
