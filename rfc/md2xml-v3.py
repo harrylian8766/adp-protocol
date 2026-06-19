@@ -261,27 +261,32 @@ def render_section_body(lines, refs, indent):
             i += 1
             continue
         
-        # Definition list term
+        # Definition list term with optional ": description"
         m = re.match(r'^(\S[^:]*?):$', s)
         if m:
             close_ul()
             term = render_inline(m.group(1), refs)
-            out.append(' ' * indent + f'<dl spacing="compact"><dt>{term}</dt>')
-            in_dl = True
             
-            # Look ahead for ": description"
+            # Check if next line is ": description"
+            has_desc = False
             if i + 1 < len(lines):
                 next_s = lines[i + 1].strip()
                 nm = re.match(r'^:\s+(.+)$', next_s)
                 if nm:
+                    has_desc = True
                     desc = render_inline(nm.group(1), refs)
+                    out.append(' ' * indent + f'<dl spacing="compact"><dt>{term}</dt>')
                     out.append(' ' * indent + f'<dd>{desc}</dd>')
-                    i += 1
+                    out.append(' ' * indent + '</dl>')
+                    i += 2
+                    continue
             
-            out.append(' ' * indent + '</dl>')
-            in_dl = False
-            i += 1
-            continue
+            # No description — render as regular paragraph (bold term)
+            if not has_desc:
+                close_dl()
+                out.append(' ' * indent + f'<t><strong>{term}</strong></t>')
+                i += 1
+                continue
         
         # Standalone ": description"
         m = re.match(r'^:\s+(.+)$', s)
@@ -378,14 +383,13 @@ def generate_xml(meta, body_parts):
     
     w('  </middle>')
     
-    # Back matter
+    # Back matter — references MUST come before sections in xml2rfc v3
     back_sections = parse_sections(body_parts['back'])
-    if back_sections:
+    if back_sections or normative or informative:
         w('')
         w('  <back>')
-        render_sections(back_sections, all_refs, lines, '    ')
         
-        # Auto-generate references (inline, no external xi:include)
+        # Generate references FIRST (xml2rfc v3 requirement)
         normative = meta.get('normative', [])
         informative = meta.get('informative', [])
         
@@ -400,6 +404,9 @@ def generate_xml(meta, body_parts):
             for ref in informative:
                 lines.append(render_reference(ref, REF_DATA[ref]))
             lines.append('    </references>')
+        
+        # Render appendix sections AFTER references
+        render_sections(back_sections, all_refs, lines, '    ')
         
         w('  </back>')
     
