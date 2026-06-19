@@ -1,0 +1,1049 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?rfc toc="yes"?>
+<?rfc symrefs="yes"?>
+<?rfc sortrefs="yes"?>
+<?rfc compact="yes"?>
+
+<rfc xmlns:xi="http://www.w3.org/2001/XInclude" ipr="trust200902" category="info" docName="draft-pro-adp-agent-discovery-02" submissionType="independent" version="3">
+
+  <front>
+    <title abbrev="adp-agent-discovery">Agent Discovery Protocol (ADP) v1.1 — Well-Known Metadata and Interaction Layer</title>
+    <author initials="Bin" surname="Lian" fullname="Bin Lian">
+      <organization>aipair.ai</organization>
+      <address>
+        <email>TBD</email>
+      </address>
+    </author>
+    <date year="2026" month="06" day="18"/>
+    <abstract>
+      <t>This document defines the Agent Discovery Protocol (ADP) v1.1, a</t>
+      <t>layered protocol for discovering, verifying, and interacting with AI</t>
+      <t>Agents on the Internet.  ADP delegates DNS discovery to DNS-AID (SVCB</t>
+      <t>records) and defines a Well-Known JSON metadata format, an</t>
+      <t>Ed25519-based identity model, and the Agent Gateway Protocol (AGP)</t>
+      <t>for real-time WebSocket messaging.  The protocol is designed to be</t>
+      <t>decentralized, standards-based, and incremental — clients escalate</t>
+      <t>from DNS to HTTP to WebSocket only as needed.</t>
+    </abstract>
+  </front>
+
+  <middle>
+    <section title="Introduction">
+      <section title="Background">
+        <t>AI Agents are evolving from chatbot plugins into autonomous,</t>
+        <t>internet-native entities.  Each platform (OpenAI, Dify, Coze)</t>
+        <t>provides its own directory and identity system, but there is no</t>
+        <t>universal discovery mechanism: an Agent on one platform cannot</t>
+        <t>natively discover an Agent on another without a bridging registry.</t>
+        <t>The Web solved an analogous problem decades ago: any resource can be</t>
+        <t>discovered through a combination of DNS names, well-known ports, and</t>
+        <t>HTML interlinking.  ADP applies the same principle to Agents, adding</t>
+        <t>what the Web assumes but Agents require: structured capability</t>
+        <t>descriptions, cryptographic identity binding, and real-time</t>
+        <t>communication primitives.</t>
+      </section>
+      <section title="Relationship to DNS-AID">
+        <t>DNS-AID <xref target="I-D.mozleywilliams-dnsop-dnsaid"/> defines the DNS discovery</t>
+        <t>layer for Agents using SVCB records <xref target="RFC9460"/>.  It registers the</t>
+        <t><strong>following SvcParamKeys</strong></t>
+        <ul spacing="compact">
+          <li>bap: Bulk Agent Protocol identifier (e.g., a2a, mcp).</li>
+          <li>cap: URI or URN of the Agent's capability descriptor.</li>
+          <li>cap-sha256: SHA-256 digest of the capability descriptor.</li>
+          <li>well-known: Path relative to /.well-known/ for the Agent's metadata</li>
+        </ul>
+        <t>document.</t>
+        <t>ADP v1.1 adopts DNS-AID as its normative DNS discovery mechanism.  The</t>
+        <t>ADP Well-Known JSON schema (<xref target="well-known"/>) serves as the content format</t>
+        <t>pointed to by the well-known SvcParamKey.</t>
+        <t>If DNS-AID is unavailable (the DNS resolver does not support SVCB, or</t>
+        <t>the authoritative server has not published SVCB records), ADP provides</t>
+        <t>a fallback path using TXT <xref target="RFC1035"/> and SRV <xref target="RFC2782"/> records as</t>
+        <t>documented in <xref target="fallback"/>.</t>
+      </section>
+      <section title="Changes from -00">
+        <ul spacing="compact">
+          <li>Layer 1 (DNS): Replaced TXT+SRV as the primary mechanism with</li>
+        </ul>
+        <t>reference to DNS-AID <xref target="I-D.mozleywilliams-dnsop-dnsaid"/>.  The</t>
+        <t>original TXT+SRV scheme is retained as a documented fallback</t>
+        <t>(<xref target="fallback"/>).</t>
+        <ul spacing="compact">
+          <li>Added TLSA <xref target="RFC6698"/> + DNSSEC <xref target="RFC9364"/> for DANE-style TLS</li>
+        </ul>
+        <t>endpoint authentication.</t>
+        <ul spacing="compact">
+          <li>Defined a trust escalation chain: dns-verified → dane-verified →</li>
+        </ul>
+        <t>key-verified → peer-verified.</t>
+        <ul spacing="compact">
+          <li>Protocol version string updated from ADP/1.0 to ADP/1.1.</li>
+        </ul>
+        <ul spacing="compact">
+          <li>Updated Well-Known schema with dns block and dane auth method.</li>
+        </ul>
+        <ul spacing="compact">
+          <li>Added implementation guidance for SVCB-first discovery clients.</li>
+        </ul>
+        <ul spacing="compact">
+          <li>Updated IANA media type registration to vendor tree:</li>
+        </ul>
+        <t>application/vnd.adp+json (see <xref target="iana-media-type"/>).</t>
+      </section>
+      <section title="Design Goals">
+        <ul spacing="compact">
+          <li>*Decentralized*: No central registry; domain ownership is the root</li>
+        </ul>
+        <t>of identity.</t>
+        <ul spacing="compact">
+          <li>*Layered and incremental*: SVCB answers connectivity in one round</li>
+        </ul>
+        <t>trip; Well-Known provides full metadata; WebSocket enables</t>
+        <t>real-time chat.  Do not escalate to a heavier layer when a lighter</t>
+        <t>one suffices.</t>
+        <ul spacing="compact">
+          <li>*Standards-based*: Built on SVCB <xref target="RFC9460"/>, TLSA <xref target="RFC6698"/>,</li>
+        </ul>
+        <t>DNSSEC <xref target="RFC9364"/>, Well-Known URIs <xref target="RFC8615"/>, WebSocket</t>
+        <t><xref target="RFC6455"/>, and Ed25519 <xref target="RFC8032"/>.</t>
+        <ul spacing="compact">
+          <li>*Aligned with IETF work*: DNS layer defers to DNS-AID</li>
+        </ul>
+        <t><xref target="I-D.mozleywilliams-dnsop-dnsaid"/>.  ADP focuses on what happens</t>
+        <t>after discovery.</t>
+        <ul spacing="compact">
+          <li>*Human-and-machine readable*: The root URL serves both a browser</li>
+        </ul>
+        <t>user and an automated client via JSON-LD embedding.</t>
+        <ul spacing="compact">
+          <li>*Secure by default*: DNS-AID + TLSA/DANE anchors the TLS endpoint;</li>
+        </ul>
+        <t>Ed25519 signatures authenticate messages end-to-end.</t>
+      </section>
+    </section>
+    <section title="Terminology">
+      <dl spacing="compact"><dt>Agent</dt>
+      <dd>An autonomous or semi-autonomous software entity identified by a</dd>
+      </dl>
+      <t>domain name, capable of being discovered through DNS-AID + ADP and</t>
+      <t>interacting via standard Web protocols.</t>
+      <dl spacing="compact"><dt>Agent Domain</dt>
+      <dd>A fully qualified domain name (FQDN) that serves as the canonical</dd>
+      </dl>
+      <t>identifier for an Agent.  The Agent URI scheme is</t>
+      <t><tt>agent:{domain}</tt>.</t>
+      <dl spacing="compact"><dt>Discovery Client</dt>
+      <dd>Software that performs discovery to locate and verify an Agent's</dd>
+      </dl>
+      <t>identity, capabilities, and endpoints.</t>
+      <dl spacing="compact"><dt>Fingerprint</dt>
+      <dd>The SHA-256 hash of an Ed25519 public key, encoded in base64url</dd>
+      </dl>
+      <t>without padding and prefixed with <tt>ed25519:</tt>.</t>
+      <dl spacing="compact"><dt>AGP (Agent Gateway Protocol)</dt>
+      <dd>The WebSocket-based messaging protocol defined in <xref target="agp"/>, used</dd>
+      </dl>
+      <t>for inter-agent communication after discovery.</t>
+      <dl spacing="compact"><dt>DNS-AID</dt>
+      <dd>The DNS-based Agent Identity and Discovery mechanism defined in</dd>
+      </dl>
+      <t><xref target="I-D.mozleywilliams-dnsop-dnsaid"/>, which serves as ADP's</t>
+      <t>normative Layer 1.</t>
+    </section>
+    <section title="Protocol Overview">
+      <t>The Agent Discovery Protocol defines a three-layer discovery and</t>
+      <t><strong>interaction stack</strong></t>
+      <t><strong>Layer 1 — DNS Discovery (delegated to DNS-AID):</strong> A single SVCB</t>
+      <t>query at the Agent's domain name returns the target, port, IP</t>
+      <t>hints, ALPN protocol list, Agent protocol identifier (bap),</t>
+      <t>capability descriptor URI (cap), its SHA-256 digest (cap-sha256),</t>
+      <t>and the Well-Known URI path (well-known).  TLSA records enable</t>
+      <t>DANE-based TLS endpoint authentication.  TXT+SRV records serve</t>
+      <t>as fallback.</t>
+      <t><strong>Layer 2 — Well-Known Metadata (this document):</strong> A GET request</t>
+      <t>to the Well-Known URI (default <tt>/.well-known/agent.json</tt>) returns</t>
+      <t>a JSON document containing the Agent's identity, capabilities,</t>
+      <t>relationships, security policies, and endpoint map.</t>
+      <t><strong>Layer 3 — Interaction Endpoints (this document):</strong> An HTML</t>
+      <t>landing page at the domain root provides human-readable discovery</t>
+      <t>with embedded JSON-LD structured data.  WebSocket endpoints using</t>
+      <t>the Agent Gateway Protocol (AGP) enable real-time inter-agent</t>
+      <t>communication with Ed25519 signature authentication.</t>
+      <figure><artwork><![CDATA[
+
+  +-----------------------------------------------------+
+  |                 Agent Discovery Stack                |
+  +-----------------------------------------------------+
+  |  Layer 1: DNS-AID        |  Layer 2+3: ADP          |
+  |  (SVCB + TLSA)           |  (Well-Known + AGP)      |
+  +-----------------------------------------------------+
+  |          IETF dnsop WG              |  This Document |
+  +-----------------------------------------------------+
+
+      ]]></artwork></figure>
+      <t>*Core principle*: If SVCB answers your question, do not issue an HTTP</t>
+      <t>request.  If Well-Known suffices, do not open a WebSocket.</t>
+    </section>
+    <section title="Layer 1: DNS Discovery (DNS-AID)">
+      <t>ADP v1.1 delegates its DNS discovery layer to DNS-AID</t>
+      <t><xref target="I-D.mozleywilliams-dnsop-dnsaid"/>.  This section summarizes the</t>
+      <t>integration points; the normative specification resides in that</t>
+      <t>document.</t>
+      <section title="SVCB Record (RECOMMENDED)">
+        <t>An ADP-compliant Agent SHOULD publish a SVCB record at its domain</t>
+        <t>name.</t>
+        <figure><artwork><![CDATA[
+alice.example.com.  3600  IN  SVCB  1  . (
+    alpn="a2a,h2,h3"
+    port=443
+    ipv4hint=192.0.2.1
+    ipv6hint=2001:db8::1
+    bap=a2a
+    well-known=agent.json
+    cap=https://alice.example.com/capabilities/a2a.json
+    cap-sha256=<sha256-digest>
+)
+        ]]></artwork></figure>
+        <section title="SvcParamKey Usage in ADP">
+          <dl spacing="compact"><dt>alpn</dt>
+          <dd>The application-layer protocol negotiation IDs <xref target="RFC7301"/>.  ADP</dd>
+          </dl>
+          <t>Agents SHOULD include the relevant Agent protocol identifier</t>
+          <t>(e.g., a2a) alongside standard HTTP protocol IDs (h2, h3).</t>
+          <dl spacing="compact"><dt>bap</dt>
+          <dd>Bulk Agent Protocol identifier.  Separated from alpn so that</dd>
+          </dl>
+          <t>policy engines can match on Agent-level protocol without parsing</t>
+          <t>transport protocol negotiation.  ADP v1.1 defines the protocol</t>
+          <t>identifier a2a for the AGP messaging protocol (<xref target="agp"/>).</t>
+          <dl spacing="compact"><dt>well-known</dt>
+          <dd>Path relative to the Well-Known URI namespace.  Discovery</dd>
+          </dl>
+          <t>Clients MUST resolve this against</t>
+          <t><tt>https://{target}/.well-known/{well-known}</tt>.  If absent, the</t>
+          <t>default path <tt>/.well-known/agent.json</tt> is used.</t>
+          <dl spacing="compact"><dt>cap</dt>
+          <dd>URI or URN identifying the Agent's capability descriptor.  ADP</dd>
+          </dl>
+          <t>Agents SHOULD publish this as a URL to their capability document.</t>
+          <dl spacing="compact"><dt>cap-sha256</dt>
+          <dd>SHA-256 digest of the capability descriptor at the time of DNS</dd>
+          </dl>
+          <t>publishing.  Allows a Discovery Client to verify that the</t>
+          <t>capability document has not changed without re-fetching.</t>
+        </section>
+        <section title="Hosted Agents (TargetName)">
+          <t>When an Agent is hosted by a third-party provider, the SVCB</t>
+          <t>TargetName field points to the provider's domain.</t>
+          <figure><artwork><![CDATA[
+alice.example.com.  3600  IN  SVCB  1  provider.example.com. (
+    alpn="a2a,h2"
+    port=443
+    bap=a2a
+    well-known=agent.json
+)
+          ]]></artwork></figure>
+        </section>
+        <section title="Organization Index (AliasMode)">
+          <t>Organizations MAY publish an index of their Agents using AliasMode.</t>
+          <figure><artwork><![CDATA[
+_agents.example.com.  3600  IN  SVCB  0  alice.example.com.
+_agents.example.com.  3600  IN  SVCB  0  bob.example.com.
+          ]]></artwork></figure>
+        </section>
+      </section>
+      <section anchor="tlsa" title="TLSA Record (RECOMMENDED with DNSSEC)">
+        <t>ADP Agents SHOULD publish a TLSA record to enable DANE-based TLS</t>
+        <t>endpoint authentication.</t>
+        <figure><artwork><![CDATA[
+_443._tcp.alice.example.com.  3600  IN  TLSA  3  1  1  <cert-sha256>
+        ]]></artwork></figure>
+        <ul spacing="compact">
+          <li>TLSA records are only valid when the DNS zone is DNSSEC-signed</li>
+        </ul>
+        <t><xref target="RFC9364"/>, to prevent downgrade attacks.</t>
+        <ul spacing="compact">
+          <li>The RECOMMENDED usage is DANE-EE (3), selector SPKI (1), matching</li>
+        </ul>
+        <t>type SHA-256 (1).</t>
+        <ul spacing="compact">
+          <li>A Discovery Client that receives both a valid TLSA record and a</li>
+        </ul>
+        <t>certificate that does not match MUST terminate the connection.</t>
+      </section>
+      <section title="DNSSEC">
+        <t>All DNS records used for Agent discovery SHOULD be DNSSEC-signed.</t>
+        <t>TLSA records MUST be DNSSEC-signed to be trusted.</t>
+      </section>
+    </section>
+    <section anchor="fallback" title="Fallback Discovery: TXT + SRV">
+      <t>When the DNS resolver or authoritative server does not support SVCB</t>
+      <t>queries (returns NODATA or NXDOMAIN for a SVCB query), Discovery</t>
+      <t>Clients SHOULD fall back to the following mechanism.  This section</t>
+      <t>preserves the Layer 1 from ADP v1.0 (-00) as a backward-compatible</t>
+      <t>alternative.</t>
+      <section title="TXT Record">
+        <figure><artwork><![CDATA[
+_agent.{domain}.  IN  TXT  "v=ADP1.1; pk=ed25519:<fp>; wk=<url>; alpn=a2a"
+        ]]></artwork></figure>
+        <dl spacing="compact"><dt>v (REQUIRED)</dt>
+        <dd>Protocol version.  MUST be ADP1, ADP1.0, or ADP1.1.</dd>
+        </dl>
+        <dl spacing="compact"><dt>pk (REQUIRED)</dt>
+        <dd>Public key fingerprint.  Computed as SHA-256 of the raw Ed25519</dd>
+        </dl>
+        <t>public key, encoded in base64url without padding.</t>
+        <dl spacing="compact"><dt>wk (REQUIRED)</dt>
+        <dd>Full HTTPS URL to the Well-Known agent metadata endpoint.</dd>
+        </dl>
+        <dl spacing="compact"><dt>alpn (OPTIONAL in fallback)</dt>
+        <dd>Application protocol identifier (e.g., a2a).</dd>
+        </dl>
+        <dl spacing="compact"><dt>port (OPTIONAL)</dt>
+        <dd>Service port number.  Default: 443.</dd>
+        </dl>
+        <dl spacing="compact"><dt>bap (OPTIONAL)</dt>
+        <dd>Agent protocol identifier.  Multi-record TXT: Values exceeding</dd>
+        </dl>
+        <t>255 octets MAY be split across multiple TXT records at the same</t>
+        <t>owner name.  Reassembly concatenates RDATA in returned order.</t>
+      </section>
+      <section title="SRV Record">
+        <figure><artwork><![CDATA[
+_agent._tcp.{domain}.  IN  SRV  <priority> <weight> <port> <target>
+        ]]></artwork></figure>
+        <t>If no SRV record is published, Discovery Clients SHOULD connect to</t>
+        <t>{domain} on TCP port 443.</t>
+      </section>
+      <section title="Fallback Procedure">
+        <t>Query SVCB at {domain}.</t>
+        <t>If NODATA or NXDOMAIN, proceed to fallback.</t>
+        <t>Query TXT at <tt>_agent.{domain}</tt>.</t>
+        <t>Parse v, pk, wk fields.</t>
+        <t>Query SRV at <tt>_agent._tcp.{domain}</tt> to locate host:port.</t>
+        <t>Proceed to Layer 2 (<xref target="well-known"/>) using the resolved URL and host.</t>
+        <t>Discovery Clients that successfully use the fallback path SHOULD</t>
+        <t>indicate this in their user agent or log, as the security properties</t>
+        <t>of fallback discovery are weaker than SVCB-based discovery (no DANE</t>
+        <t>support, weaker path validation).</t>
+      </section>
+    </section>
+    <section anchor="well-known" title="Layer 2: Well-Known Metadata">
+      <section title="Endpoint">
+        <figure><artwork><![CDATA[
+GET https://{domain}/.well-known/agent.json
+        ]]></artwork></figure>
+      </section>
+      <section title="Content Type">
+        <t><strong>The server MUST respond with Content-Type</strong></t>
+        <t><tt>application/vnd.adp+json</tt> (vendor-tree media type registered per</t>
+        <t><xref target="iana-media-type"/>).  Prior to formal registration, servers MAY use</t>
+        <t><tt>application/json</tt> as a transitional content type.</t>
+      </section>
+      <section anchor="schema" title="Schema">
+        <section title="Top-Level Members">
+          <t><strong>The JSON document contains the following top-level members</strong></t>
+          <dl spacing="compact"><dt>protocol</dt>
+          <dd>REQUIRED.  Protocol version string.  MUST be <tt>ADP/1.1</tt>.</dd>
+          </dl>
+          <dl spacing="compact"><dt>identity</dt>
+          <dd>REQUIRED.  Identity block (<xref target="identity-block"/>).</dd>
+          </dl>
+          <dl spacing="compact"><dt>endpoints</dt>
+          <dd>REQUIRED.  Endpoints block (<xref target="endpoints-block"/>).</dd>
+          </dl>
+          <dl spacing="compact"><dt>capabilities</dt>
+          <dd>REQUIRED.  Capabilities block (<xref target="capabilities-block"/>).</dd>
+          </dl>
+          <dl spacing="compact"><dt>security</dt>
+          <dd>RECOMMENDED.  Security block (<xref target="security-block"/>).</dd>
+          </dl>
+          <dl spacing="compact"><dt>policies</dt>
+          <dd>OPTIONAL.  Privacy, terms, and data handling policies.</dd>
+          </dl>
+          <dl spacing="compact"><dt>availability</dt>
+          <dd>OPTIONAL.  Status and uptime information.</dd>
+          </dl>
+          <dl spacing="compact"><dt>meta</dt>
+          <dd>OPTIONAL.  Generator, version, and documentation references.</dd>
+          </dl>
+        </section>
+        <section anchor="identity-block" title="Identity Block">
+          <t><strong>The identity block MUST contain</strong></t>
+          <dl spacing="compact"><dt>id</dt>
+          <dd>Agent URI in the form <tt>agent:{domain}</tt>.</dd>
+          </dl>
+          <dl spacing="compact"><dt>domain</dt>
+          <dd>The Agent's FQDN.</dd>
+          </dl>
+          <dl spacing="compact"><dt>name</dt>
+          <dd>Human-readable Agent name.</dd>
+          </dl>
+          <dl spacing="compact"><dt>publicKey</dt>
+          <dd>Object containing:</dd>
+          </dl>
+          <ul spacing="compact">
+            <li>algorithm: MUST be <tt>ed25519</tt>.</li>
+            <li>fingerprint: SHA-256 of the Ed25519 public key, encoded in</li>
+          </ul>
+          <t>base64url without padding, prefixed with <tt>ed25519:</tt>.</t>
+          <ul spacing="compact">
+            <li>full: PEM-encoded Ed25519 public key (if verification needed).</li>
+            <li>proof: OPTIONAL.  Self-signature proving key possession.</li>
+          </ul>
+        </section>
+        <section anchor="endpoints-block" title="Endpoints Block">
+          <t>At minimum, the <tt>wellKnown</tt> endpoint MUST be present.  Additional</t>
+          <t><strong>endpoints provide entry points for different interaction modes</strong></t>
+          <dl spacing="compact"><dt>wellKnown</dt>
+          <dd>URL of this document (self-referential).</dd>
+          </dl>
+          <dl spacing="compact"><dt>discovery</dt>
+          <dd>HTML landing page URL.</dd>
+          </dl>
+          <dl spacing="compact"><dt>chat</dt>
+          <dd>WebSocket URL for AGP real-time messaging.</dd>
+          </dl>
+          <dl spacing="compact"><dt>tasks</dt>
+          <dd>REST endpoint for asynchronous task submission.</dd>
+          </dl>
+          <dl spacing="compact"><dt>swarm</dt>
+          <dd>REST endpoint for multi-agent swarm coordination.</dd>
+          </dl>
+          <dl spacing="compact"><dt>webhook</dt>
+          <dd>REST endpoint for external event callbacks.</dd>
+          </dl>
+        </section>
+        <section anchor="capabilities-block" title="Capabilities Block">
+          <t><strong>Each capability is an object with</strong></t>
+          <dl spacing="compact"><dt>id</dt>
+          <dd>Unique capability identifier.</dd>
+          </dl>
+          <dl spacing="compact"><dt>name</dt>
+          <dd>Human-readable name.</dd>
+          </dl>
+          <dl spacing="compact"><dt>description</dt>
+          <dd>Free-text description.</dd>
+          </dl>
+          <dl spacing="compact"><dt>input</dt>
+          <dd>Array of accepted MIME types or tokens (e.g., `["text", "image",</dd>
+          </dl>
+          <t>"file"]`).</t>
+          <dl spacing="compact"><dt>output</dt>
+          <dd>Array of produced MIME types or tokens.</dd>
+          </dl>
+          <dl spacing="compact"><dt>interfaces</dt>
+          <dd>Array of supported interface modes (e.g., <tt>["chat", "api"]</tt>).</dd>
+          </dl>
+          <dl spacing="compact"><dt>languages</dt>
+          <dd>Array of BCP 47 language tags.</dd>
+          </dl>
+          <dl spacing="compact"><dt>pricing</dt>
+          <dd>Object with <tt>model</tt> (free, per_use, subscription) and optional</dd>
+          </dl>
+          <t><tt>details</tt>.</t>
+        </section>
+        <section anchor="security-block" title="Security Block">
+          <dl spacing="compact"><dt>tlsRequired</dt>
+          <dd>MUST be true per <xref target="tls-requirements"/>.</dd>
+          </dl>
+          <dl spacing="compact"><dt>minProtocolVersion</dt>
+          <dd>Minimum ADP protocol version accepted.</dd>
+          </dl>
+          <dl spacing="compact"><dt>authMethods</dt>
+          <dd>Array of supported authentication methods.  All implementations</dd>
+          </dl>
+          <t>MUST support <tt>pubkey</tt>.  MAY also support <tt>bearer_token</tt>.</t>
+          <dl spacing="compact"><dt>rateLimit</dt>
+          <dd>Object with <tt>requestsPerMinute</tt> and <tt>burstSize</tt> for rate limiting.</dd>
+          </dl>
+        </section>
+        <section title="Example">
+          <figure><artwork><![CDATA[
+{
+  "protocol": "ADP/1.1",
+  "identity": {
+    "id": "agent:alice.example.com",
+    "domain": "alice.example.com",
+    "name": "Alice's Agent",
+    "publicKey": {
+      "algorithm": "ed25519",
+      "fingerprint": "ed25519:dGhpcyBpcyBhIHRlc3QgcHVibGljIGtleQ",
+      "full": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyE...\n-----END PUBLIC KEY-----"
+    }
+  },
+  "endpoints": {
+    "wellKnown": "https://alice.example.com/.well-known/agent.json",
+    "discovery": "https://alice.example.com/",
+    "chat": "wss://alice.example.com/agent/chat",
+    "tasks": "https://alice.example.com/agent/tasks",
+    "swarm": "https://alice.example.com/agent/swarm"
+  },
+  "capabilities": [
+    {
+      "id": "chat",
+      "name": "Conversational Chat",
+      "description": "General-purpose conversational AI",
+      "input": ["text", "image", "file"],
+      "output": ["text", "html"],
+      "interfaces": ["chat", "api"],
+      "languages": ["en", "zh"],
+      "pricing": { "model": "free" }
+    }
+  ],
+  "security": {
+    "tlsRequired": true,
+    "minProtocolVersion": "ADP/1.1",
+    "authMethods": ["pubkey"],
+    "rateLimit": {
+      "requestsPerMinute": 60,
+      "burstSize": 10
+    }
+  },
+  "dns": {
+    "svcbVerified": true,
+    "dnssecSigned": true,
+    "dane": {
+      "supported": true,
+      "usage": "DANE-EE",
+      "selector": "SPKI",
+      "matchingType": "SHA-256"
+    }
+  }
+}
+          ]]></artwork></figure>
+        </section>
+      </section>
+      <section title="Caching">
+        <t>Discovery Clients SHOULD cache Well-Known metadata with respect to the</t>
+        <t>HTTP Cache-Control headers returned by the server.  If no explicit</t>
+        <t>cache directives are present, clients SHOULD apply a default TTL of</t>
+        <t>3600 seconds.</t>
+        <t>Clients MAY use the cap-sha256 SvcParamKey from DNS-AID to detect</t>
+        <t>changes to the capability descriptor without re-fetching the full</t>
+        <t>document.</t>
+      </section>
+    </section>
+    <section title="Layer 3: Interaction Endpoints">
+      <section title="HTML Landing Page">
+        <t>The domain root (<tt>GET /</tt>) MUST return an HTML page suitable for both</t>
+        <t>human browsing and machine parsing.</t>
+        <section title="JSON-LD Embedding">
+          <t>The page MUST embed a <tt>&lt;script type="application/ld+json"&gt;</tt> block</t>
+          <t>containing the Agent's full metadata (equivalent to the Well-Known</t>
+          <t>JSON content).</t>
+        </section>
+        <section title="HTML Meta Tags">
+          <t><strong>The page SHOULD include the following meta tags</strong></t>
+          <figure><artwork><![CDATA[
+<meta name="agent-id" content="agent:{domain}">
+<meta name="agent-protocol" content="ADP/1.1">
+          ]]></artwork></figure>
+        </section>
+        <section title="Semantic HTML">
+          <t>Agent landing pages SHOULD use semantic HTML elements and custom</t>
+          <t>elements (e.g., <tt>&lt;agent-card&gt;</tt>) to describe capabilities and enable</t>
+          <t>human interaction.  An example landing page structure is provided</t>
+          <t>in <xref target="appendix-html"/>.</t>
+        </section>
+      </section>
+      <section anchor="agp" title="Agent Gateway Protocol (AGP)">
+        <section title="Overview">
+          <t>AGP is a WebSocket-based messaging protocol that enables real-time</t>
+          <t>communication between Agents after discovery.  It uses JSON as the</t>
+          <t>message framing format, with Ed25519 signatures for per-message</t>
+          <t>authentication.</t>
+        </section>
+        <section title="Connection Handshake">
+          <t><strong>A Discovery Client establishes an AGP connection as follows</strong></t>
+          <t>Resolve the Agent's chat endpoint from the Well-Known metadata</t>
+          <t>(<tt>endpoints.chat</tt>).</t>
+          <t>Open a WebSocket connection to the resolved URL using WSS</t>
+          <t>(WebSocket Secure).</t>
+          <t>The connecting Agent sends a <tt>hello</tt> message containing its</t>
+          <t>Agent URI and public key fingerprint.</t>
+          <t>The receiving Agent responds with its own <tt>hello</tt> message.</t>
+          <t>Both sides verify the counterparty's public key fingerprint</t>
+          <t>against the value obtained from the Well-Known metadata.</t>
+          <t>Subsequent messages are signed and verified using Ed25519.</t>
+        </section>
+        <section title="Message Format">
+          <t>Each AGP message is a single JSON object with the following</t>
+          <t><strong>structure</strong></t>
+          <figure><artwork><![CDATA[
+{
+  "id": "<message-uuid>",
+  "from": "agent:alice.example.com",
+  "to": "agent:bob.example.com",
+  "type": "chat|task|system|ack",
+  "timestamp": "2026-06-18T10:00:00Z",
+  "signature": "ed25519:<base64url-signature>",
+  "body": {
+    "content": "<message content>",
+    "contentType": "text/plain|text/html|application/json",
+    "replyTo": "<optional-message-id>"
+  }
+}
+          ]]></artwork></figure>
+        </section>
+        <section title="Message Types">
+          <dl spacing="compact"><dt>chat</dt>
+          <dd>Conversational message between Agents.</dd>
+          </dl>
+          <dl spacing="compact"><dt>task</dt>
+          <dd>Asynchronous task request or result.</dd>
+          </dl>
+          <dl spacing="compact"><dt>system</dt>
+          <dd>Protocol-level control messages (heartbeat, error, disconnect).</dd>
+          </dl>
+          <dl spacing="compact"><dt>ack</dt>
+          <dd>Acknowledgment of message receipt.</dd>
+          </dl>
+        </section>
+        <section title="Signature Computation">
+          <t>The signature covers the following fields, concatenated with</t>
+          <t><strong>newlines</strong></t>
+          <figure><artwork><![CDATA[
+{id}\n{from}\n{to}\n{type}\n{timestamp}\n{body.content}
+          ]]></artwork></figure>
+          <t>The signature is computed using Ed25519 <xref target="RFC8032"/> and encoded as</t>
+          <t>base64url without padding, prefixed with <tt>ed25519:</tt>.</t>
+        </section>
+      </section>
+      <section title="HTTP Endpoints">
+        <section title="Task Endpoint">
+          <figure><artwork><![CDATA[
+POST /agent/tasks
+Content-Type: application/json
+
+{
+  "task": "code-review",
+  "input": { "code": "...", "language": "python" },
+  "callback": "https://requester.example.com/agent/webhook"
+}
+          ]]></artwork></figure>
+          <t>The server responds with <tt>202 Accepted</tt> and a task status URL.</t>
+          <t>Results are delivered to the callback endpoint when complete.</t>
+        </section>
+        <section title="Swarm Endpoint">
+          <figure><artwork><![CDATA[
+POST /agent/swarm/join
+Content-Type: application/json
+
+{
+  "agent": "agent:alice.example.com",
+  "task": "collaborative-analysis",
+  "role": "participant"
+}
+          ]]></artwork></figure>
+        </section>
+      </section>
+    </section>
+    <section anchor="security-considerations" title="Security Considerations">
+      <section title="Trust Escalation Model">
+        <t><strong>ADP defines a progressive trust model</strong></t>
+        <dl spacing="compact"><dt>dns-verified</dt>
+        <dd>The DNS record for the Agent has been resolved.  The public key</dd>
+        </dl>
+        <t>fingerprint in the DNS record (SVCB bap or TXT pk) has been</t>
+        <t>retrieved.  No cryptographic verification has been performed.</t>
+        <dl spacing="compact"><dt>dane-verified</dt>
+        <dd>The TLS endpoint certificate has been validated against the</dd>
+        </dl>
+        <t>DNSSEC-signed TLSA record.  The transport channel is</t>
+        <t>authenticated at the DANE level.</t>
+        <dl spacing="compact"><dt>key-verified</dt>
+        <dd>The full Ed25519 public key from the Well-Known metadata has</dd>
+        </dl>
+        <t>been verified to match the fingerprint from the DNS record.  The</t>
+        <t>key is cryptographically bound to the domain.</t>
+        <dl spacing="compact"><dt>peer-verified</dt>
+        <dd>Bidirectional signature verification has been completed.  The</dd>
+        </dl>
+        <t>communication partner's identity is fully authenticated.</t>
+        <section title="Freshness and Replay Protection">
+          <t>Each AGP message includes a timestamp.  Receivers MUST reject</t>
+          <t>messages with timestamps more than 300 seconds in the past or more</t>
+          <t>than 60 seconds in the future (relative to the receiver's clock),</t>
+          <t>with appropriate clock skew tolerance.</t>
+          <t>Implementations SHOULD track recently seen message IDs to detect</t>
+          <t>replay attempts within the validity window.</t>
+        </section>
+        <section title="Fingerprint Verification">
+          <t>Discovery Clients MUST verify that the SHA-256 hash of the full</t>
+          <t>Ed25519 public key obtained from the Well-Known metadata matches the</t>
+          <t>fingerprint published in the DNS record (SVCB or TXT).  If the</t>
+          <t>fingerprints do not match, the connection MUST be terminated and the</t>
+          <t>Agent MUST NOT be trusted.</t>
+        </section>
+      </section>
+      <section anchor="tls-requirements" title="TLS Requirements">
+        <t>All endpoints (Well-Known, WebSocket, REST) MUST be served over</t>
+        <t>TLS 1.3 or later.  Certificates MUST be valid and chain to a trusted</t>
+        <t>root CA.  Self-signed certificates are NOT acceptable for production</t>
+        <t>deployments, except in local development environments.</t>
+        <t>When TLSA records are published (<xref target="tlsa"/>), Discovery Clients SHOULD</t>
+        <t>perform DANE verification in addition to standard PKI validation.</t>
+      </section>
+      <section title="Private Agents">
+        <t><strong>Agents that do not wish to be publicly discoverable may</strong></t>
+        <ul spacing="compact">
+          <li>Not publish <tt>_agent</tt> DNS records.</li>
+          <li>Return HTTP 404 or 403 from the Well-Known endpoint.</li>
+          <li>Require a bearer token for Well-Known access.</li>
+          <li>Use invitation-based discovery instead of DNS discovery.</li>
+        </ul>
+        <section title="Invitation Format">
+          <t>A private Agent may distribute invitations containing the</t>
+          <t><strong>information normally obtained through DNS discovery</strong></t>
+          <figure><artwork><![CDATA[
+{
+  "protocol": "ADP/1.1",
+  "invite": {
+    "code": "a1b2c3d4",
+    "agent": "agent:alice.example.com",
+    "wellKnown": "https://alice.example.com/.well-known/agent.json",
+    "pubkey": "ed25519:<fingerprint>",
+    "expires": "2026-12-31T00:00:00Z"
+  }
+}
+          ]]></artwork></figure>
+        </section>
+      </section>
+    </section>
+    <section title="IANA Considerations">
+      <section title="Well-Known URI Registration">
+        <t>IANA has denied registration of the "agent" Well-Known URI</t>
+        <t><xref target="RFC8615"/> in case #1453939 (2026-06).  This document therefore</t>
+        <t>specifies the URI path <tt>/.well-known/agent.json</tt> as a de facto</t>
+        <t>convention pending future availability of the Well-Known URI registry</t>
+        <t>slot.  Implementers should be aware that this path has not been</t>
+        <t>formally registered.</t>
+      </section>
+      <section title="SvcParamKey Registration (via DNS-AID)">
+        <t>The SvcParamKeys used by ADP (bap, cap, cap-sha256, well-known) are</t>
+        <t>registered through the DNS-AID specification</t>
+        <t><xref target="I-D.mozleywilliams-dnsop-dnsaid"/>.  ADP does not independently</t>
+        <t>request these registrations.</t>
+      </section>
+      <section title="Service Name Registration">
+        <t>ADP uses the service name <tt>_agent</tt> for SRV records.  Formal service</t>
+        <t>name registration with IANA is pending.</t>
+      </section>
+      <section anchor="iana-media-type" title="Media Type Registration">
+        <t>This document requests the registration of the following media type</t>
+        <t><strong>in the vendor tree</strong></t>
+        <dl spacing="compact"><dt>Type name</dt>
+        <dd>application</dd>
+        </dl>
+        <dl spacing="compact"><dt>Subtype name</dt>
+        <dd>vnd.adp+json</dd>
+        </dl>
+        <dl spacing="compact"><dt>Required parameters</dt>
+        <dd>N/A</dd>
+        </dl>
+        <dl spacing="compact"><dt>Optional parameters</dt>
+        <dd>N/A</dd>
+        </dl>
+        <dl spacing="compact"><dt>Encoding considerations</dt>
+        <dd>binary.  The format is JSON-based and may contain lines longer</dd>
+        </dl>
+        <t>than 998 octets and arbitrary octet sequences within string</t>
+        <t>values.  Per <xref target="RFC6838"/> Section 4.8, binary encoding is</t>
+        <t>appropriate.</t>
+        <dl spacing="compact"><dt>Security considerations</dt>
+        <dd>See <xref target="security-considerations"/> of this document.</dd>
+        </dl>
+        <dl spacing="compact"><dt>Interoperability considerations</dt>
+        <dd>Unknown JSON fields MUST be ignored for forward compatibility.</dd>
+        </dl>
+        <t>The <tt>protocol</tt> field determines the schema version; clients</t>
+        <t>MUST check it before processing.</t>
+        <dl spacing="compact"><dt>Published specification</dt>
+        <dd>This document (draft-pro-adp-agent-discovery).</dd>
+        </dl>
+        <dl spacing="compact"><dt>Applications that use this media type</dt>
+        <dd>AI Agent discovery clients, DNS-AID resolvers, agent registries,</dd>
+        </dl>
+        <t>and agent gateway implementations.</t>
+        <dl spacing="compact"><dt>Fragment identifier considerations</dt>
+        <dd>JSON Pointer <xref target="RFC6901"/> fragment identifiers MAY be used.</dd>
+        </dl>
+        <dl spacing="compact"><dt>Restrictions on usage</dt>
+        <dd>This media type is designed for use within the ADP protocol and</dd>
+        </dl>
+        <t>is not recommended for use in email or other non-HTTP contexts.</t>
+        <dl spacing="compact"><dt>Provisional registration</dt>
+        <dd>No.</dd>
+        </dl>
+        <dl spacing="compact"><dt>Additional information</dt>
+        <dd>Deprecated alias names: N/A</dd>
+        </dl>
+        <t>Magic number(s): N/A (JSON)</t>
+        <t>File extension(s): N/A</t>
+        <t>Macintosh file type code(s): N/A</t>
+        <t>OID(s): N/A</t>
+        <dl spacing="compact"><dt>Intended usage</dt>
+        <dd>LIMITED USE.</dd>
+        </dl>
+        <dl spacing="compact"><dt>Contact name</dt>
+        <dd>Bin Lian</dd>
+        </dl>
+        <dl spacing="compact"><dt>Contact email</dt>
+        <dd>TBD</dd>
+        </dl>
+        <dl spacing="compact"><dt>Author/Change controller</dt>
+        <dd>Bin Lian</dd>
+        </dl>
+        <dl spacing="compact"><dt>Change controller</dt>
+        <dd>Bin Lian</dd>
+        </dl>
+      </section>
+    </section>
+    <section title="Implementation Status">
+      <section title="Reference Implementation">
+        <t>A reference implementation of ADP is available at</t>
+        <t>[https://github.com/harrylian8766/adp-protocol](https://github.com/harrylian8766/adp-protocol).</t>
+        <t><strong>The reference implementation includes</strong></t>
+        <ul spacing="compact">
+          <li>A DNS record generator for ADP-compliant zones.</li>
+          <li>A Well-Known metadata server.</li>
+          <li>An AGP WebSocket server and client library.</li>
+          <li>An HTML landing page template with JSON-LD embedding.</li>
+        </ul>
+      </section>
+      <section title="Backward Compatibility">
+        <t>ADP v1.1 is backward compatible with ADP v1.0 at the Well-Known</t>
+        <t>metadata layer.  v1.1 adds the <tt>dns</tt> block and <tt>dane</tt> auth method to</t>
+        <t>the schema; v1.0 clients that ignore unknown fields will function</t>
+        <t>correctly with v1.1 metadata.</t>
+        <t>The fallback TXT+SRV discovery mechanism (<xref target="fallback"/>) is identical to</t>
+        <t>the ADP v1.0 Layer 1, ensuring that pre-v1.1 Discovery Clients can</t>
+        <t>still locate Agents that have migrated to SVCB-based discovery.</t>
+      </section>
+    </section>
+    <section title="Acknowledgments">
+      <t>The ADP protocol design draws on WebFinger <xref target="RFC7033"/>, the</t>
+      <t><tt>.well-known</tt> URI pattern <xref target="RFC8615"/>, and the DNS-AID specification</t>
+      <t><xref target="I-D.mozleywilliams-dnsop-dnsaid"/>.</t>
+    </section>
+    <section title="Version History">
+      <dl spacing="compact"><dt>-00 (2026-06-09)</dt>
+      <dd>Initial draft.  Defined three-layer discovery stack with TXT+SRV</dd>
+      </dl>
+      <t>as primary DNS mechanism.</t>
+      <dl spacing="compact"><dt>-01 (2026-06-17)</dt>
+      <dd>Adopted DNS-AID (SVCB) as normative Layer 1.  Added TLSA/DANE</dd>
+      </dl>
+      <t>support.  Defined trust escalation model.  Updated protocol</t>
+      <t>version to ADP/1.1.</t>
+      <dl spacing="compact"><dt>-02 (2026-06-18)</dt>
+      <dd>Fixed markup and cross-reference errors.  Updated media type</dd>
+      </dl>
+      <t>registration to vendor tree (application/vnd.adp+json).  Noted</t>
+      <t>Well-Known URI registration denial.  Added Private Agents and</t>
+      <t>Invitation Format sections.</t>
+    </section>
+  </middle>
+
+  <back>
+    <references>
+      <name>Normative References</name>
+    <reference anchor="RFC1035" target="https://www.rfc-editor.org/info/rfc1035">
+      <front>
+        <title>Domain names - implementation and specification</title>
+        <author initials="P." surname="Mockapetris" fullname="P. Mockapetris"/>
+        <date month="November" year="1987"/>
+      </front>
+    <seriesInfo name="STD" value="13"/>
+    </reference>
+    <reference anchor="RFC2782" target="https://www.rfc-editor.org/info/rfc2782">
+      <front>
+        <title>A DNS RR for specifying the location of services (DNS SRV)</title>
+        <author initials="A." surname="Gulbrandsen" fullname="A. Gulbrandsen"/>
+        <author initials="P." surname="Vixie" fullname="P. Vixie"/>
+        <author initials="L." surname="Esibov" fullname="L. Esibov"/>
+        <date month="February" year="2000"/>
+      </front>
+    </reference>
+    <reference anchor="RFC6455" target="https://www.rfc-editor.org/info/rfc6455">
+      <front>
+        <title>The WebSocket Protocol</title>
+        <author initials="I." surname="Fette" fullname="I. Fette"/>
+        <author initials="A." surname="Melnikov" fullname="A. Melnikov"/>
+        <date month="December" year="2011"/>
+      </front>
+    </reference>
+    <reference anchor="RFC6698" target="https://www.rfc-editor.org/info/rfc6698">
+      <front>
+        <title>The DNS-Based Authentication of Named Entities (DANE) Transport Layer Security (TLS) Protocol: TLSA</title>
+        <author initials="P." surname="Hoffman" fullname="P. Hoffman"/>
+        <author initials="J." surname="Schlyter" fullname="J. Schlyter"/>
+        <date month="August" year="2012"/>
+      </front>
+    </reference>
+    <reference anchor="RFC6838" target="https://www.rfc-editor.org/info/rfc6838">
+      <front>
+        <title>Media Type Specifications and Registration Procedures</title>
+        <author initials="N." surname="Freed" fullname="N. Freed"/>
+        <author initials="J." surname="Klensin" fullname="J. Klensin"/>
+        <author initials="T." surname="Hansen" fullname="T. Hansen"/>
+        <date month="January" year="2013"/>
+      </front>
+    <seriesInfo name="BCP" value="13"/>
+    </reference>
+    <reference anchor="RFC7301" target="https://www.rfc-editor.org/info/rfc7301">
+      <front>
+        <title>Transport Layer Security (TLS) Application-Layer Protocol Negotiation Extension</title>
+        <author initials="S." surname="Friedl" fullname="S. Friedl"/>
+        <author initials="A." surname="Popov" fullname="A. Popov"/>
+        <author initials="A." surname="Langley" fullname="A. Langley"/>
+        <author initials="E." surname="Stephan" fullname="E. Stephan"/>
+        <date month="July" year="2014"/>
+      </front>
+    </reference>
+    <reference anchor="RFC8032" target="https://www.rfc-editor.org/info/rfc8032">
+      <front>
+        <title>Edwards-Curve Digital Signature Algorithm (EdDSA)</title>
+        <author initials="S." surname="Josefsson" fullname="S. Josefsson"/>
+        <author initials="I." surname="Liusvaara" fullname="I. Liusvaara"/>
+        <date month="January" year="2017"/>
+      </front>
+    </reference>
+    <reference anchor="RFC8259" target="https://www.rfc-editor.org/info/rfc8259">
+      <front>
+        <title>The JavaScript Object Notation (JSON) Data Interchange Format</title>
+        <author initials="T." surname="Bray" fullname="T. Bray"/>
+        <date month="December" year="2017"/>
+      </front>
+    <seriesInfo name="STD" value="90"/>
+    </reference>
+    <reference anchor="RFC8615" target="https://www.rfc-editor.org/info/rfc8615">
+      <front>
+        <title>Well-Known Uniform Resource Identifiers (URIs)</title>
+        <author initials="M." surname="Nottingham" fullname="M. Nottingham"/>
+        <date month="May" year="2019"/>
+      </front>
+    </reference>
+    <reference anchor="RFC9364" target="https://www.rfc-editor.org/info/rfc9364">
+      <front>
+        <title>DNS-Based Authentication of Named Entities (DANE) TLSA for SMTP</title>
+        <author initials="V." surname="Dukhovni" fullname="V. Dukhovni"/>
+        <author initials="W." surname="Hardaker" fullname="W. Hardaker"/>
+        <date month="February" year="2023"/>
+      </front>
+    </reference>
+    <reference anchor="RFC6901" target="https://www.rfc-editor.org/info/rfc6901">
+      <front>
+        <title>JavaScript Object Notation (JSON) Pointer</title>
+        <author initials="P." surname="Bryan" fullname="P. Bryan"/>
+        <author initials="K." surname="Zyp" fullname="K. Zyp"/>
+        <author initials="M." surname="Nottingham" fullname="M. Nottingham"/>
+        <date month="April" year="2013"/>
+      </front>
+    </reference>
+    <reference anchor="RFC9460" target="https://www.rfc-editor.org/info/rfc9460">
+      <front>
+        <title>Service Binding and Parameter Specification via the DNS (SVCB and HTTPS Resource Records)</title>
+        <author initials="B." surname="Schwartz" fullname="B. Schwartz"/>
+        <author initials="M." surname="Bishop" fullname="M. Bishop"/>
+        <author initials="E." surname="Nygren" fullname="E. Nygren"/>
+        <date month="November" year="2023"/>
+      </front>
+    </reference>
+    <reference anchor="I-D.mozleywilliams-dnsop-dnsaid" target="https://datatracker.ietf.org/doc/draft-mozleywilliams-dnsop-dnsaid/">
+      <front>
+        <title>DNS-AID: DNS Agent Identity Discovery Using SVCB Resource Records</title>
+        <author initials="L." surname="Mozley-Williams" fullname="L. Mozley-Williams"/>
+        <date year="2025"/>
+      </front>
+    </reference>
+    </references>
+    <references>
+      <name>Informative References</name>
+    <reference anchor="RFC7033" target="https://www.rfc-editor.org/info/rfc7033">
+      <front>
+        <title>WebFinger</title>
+        <author initials="P." surname="Jones" fullname="P. Jones"/>
+        <author initials="G." surname="Salgueiro" fullname="G. Salgueiro"/>
+        <author initials="M." surname="Jones" fullname="M. Jones"/>
+        <author initials="J." surname="Smarr" fullname="J. Smarr"/>
+        <date month="September" year="2013"/>
+      </front>
+    </reference>
+    <reference anchor="draft-pro-adp-agent-discovery-00" target="https://datatracker.ietf.org/doc/draft-pro-adp-agent-discovery-00/">
+      <front>
+        <title>Agent Discovery Protocol (ADP)</title>
+        <author initials="Bin" surname="Lian" fullname="Bin Lian"/>
+        <date month="June" year="2026"/>
+      </front>
+    </reference>
+    </references>
+    <section anchor="appendix-html" title="Appendix: HTML Landing Page Example">
+      <figure><artwork><![CDATA[
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="agent-id" content="agent:alice.example.com">
+  <meta name="agent-protocol" content="ADP/1.1">
+  <title>Alice's Agent</title>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "protocol": "ADP/1.1",
+    "identity": {
+      "id": "agent:alice.example.com",
+      "domain": "alice.example.com",
+      "name": "Alice's Agent",
+      "publicKey": {
+        "algorithm": "ed25519",
+        "fingerprint": "ed25519:dGhpcyBpcyBhIHRlc3Q..."
+      }
+    },
+    "endpoints": {
+      "wellKnown": "https://alice.example.com/.well-known/agent.json",
+      "chat": "wss://alice.example.com/agent/chat"
+    },
+    "capabilities": [
+      {
+        "id": "chat",
+        "name": "Conversational Chat",
+        "description": "General-purpose conversational AI",
+        "input": ["text", "image", "file"],
+        "output": ["text", "html"],
+        "interfaces": ["chat", "api"],
+        "languages": ["en", "zh"],
+        "pricing": { "model": "free" }
+      }
+    ]
+  }
+  </script>
+</head>
+<body>
+  <agent-card>
+    <h1>Alice's Agent</h1>
+    <p>General-purpose conversational AI agent.</p>
+    <capability-list>
+      <capability name="Chat" status="available"></capability>
+    </capability-list>
+    <connect-form action="/agent/connect">
+      <input name="from" placeholder="Your Agent ID (agent:...)">
+      <button type="submit">Connect</button>
+    </connect-form>
+  </agent-card>
+</body>
+</html>
+      ]]></artwork></figure>
+    </section>
+    <section title="Author's Address">
+      <figure><artwork><![CDATA[
+Bin Lian
+aipair.ai
+Email: TBD
+      ]]></artwork></figure>
+    </section>
+  </back>
+
+</rfc>
