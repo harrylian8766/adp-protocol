@@ -639,7 +639,7 @@ Content-Type: application/json
         </section>
       </section>
     </section>
-    <section title="Security Considerations">
+    <section anchor="security-considerations" title="Security Considerations">
       <section title="Trust Escalation Model">
         <t><strong>ADP defines a progressive trust model</strong></t>
         <dl spacing="compact"><dt>dns-verified</dt>
@@ -854,8 +854,8 @@ Content-Type: application/json
         <title>Domain names - implementation and specification</title>
         <author initials="P." surname="Mockapetris" fullname="P. Mockapetris"/>
         <date month="November" year="1987"/>
-        <seriesInfo name="STD" value="13"/>
       </front>
+    <seriesInfo name="STD" value="13"/>
     </reference>
     <reference anchor="RFC2782" target="https://www.rfc-editor.org/info/rfc2782">
       <front>
@@ -889,8 +889,8 @@ Content-Type: application/json
         <author initials="J." surname="Klensin" fullname="J. Klensin"/>
         <author initials="T." surname="Hansen" fullname="T. Hansen"/>
         <date month="January" year="2013"/>
-        <seriesInfo name="BCP" value="13"/>
       </front>
+    <seriesInfo name="BCP" value="13"/>
     </reference>
     <reference anchor="RFC7301" target="https://www.rfc-editor.org/info/rfc7301">
       <front>
@@ -915,8 +915,8 @@ Content-Type: application/json
         <title>The JavaScript Object Notation (JSON) Data Interchange Format</title>
         <author initials="T." surname="Bray" fullname="T. Bray"/>
         <date month="December" year="2017"/>
-        <seriesInfo name="STD" value="90"/>
       </front>
+    <seriesInfo name="STD" value="90"/>
     </reference>
     <reference anchor="RFC8615" target="https://www.rfc-editor.org/info/rfc8615">
       <front>
