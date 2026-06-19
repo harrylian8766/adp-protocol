@@ -45,8 +45,7 @@
       <section title="Relationship to DNS-AID">
         <t>DNS-AID <xref target="I-D.mozleywilliams-dnsop-dnsaid"/> defines the DNS discovery</t>
         <t>layer for Agents using SVCB records <xref target="RFC9460"/>.  It registers the</t>
-        <dl spacing="compact"><dt>following SvcParamKeys</dt>
-        </dl>
+        <t><strong>following SvcParamKeys</strong></t>
         <ul spacing="compact">
           <li>bap: Bulk Agent Protocol identifier (e.g., a2a, mcp).</li>
           <li>cap: URI or URN of the Agent's capability descriptor.</li>
@@ -153,8 +152,7 @@
     </section>
     <section title="Protocol Overview">
       <t>The Agent Discovery Protocol defines a three-layer discovery and</t>
-      <dl spacing="compact"><dt>interaction stack</dt>
-      </dl>
+      <t><strong>interaction stack</strong></t>
       <t><strong>Layer 1 — DNS Discovery (delegated to DNS-AID):</strong> A single SVCB</t>
       <t>query at the Agent's domain name returns the target, port, IP</t>
       <t>hints, ALPN protocol list, Agent protocol identifier (bap),</t>
@@ -337,16 +335,14 @@ GET https://{domain}/.well-known/agent.json
         ]]></artwork></figure>
       </section>
       <section title="Content Type">
-        <dl spacing="compact"><dt>The server MUST respond with Content-Type</dt>
-        </dl>
+        <t><strong>The server MUST respond with Content-Type</strong></t>
         <t><tt>application/vnd.adp+json</tt> (vendor-tree media type registered per</t>
         <t><xref target="iana-media-type"/>).  Prior to formal registration, servers MAY use</t>
         <t><tt>application/json</tt> as a transitional content type.</t>
       </section>
       <section anchor="schema" title="Schema">
         <section title="Top-Level Members">
-          <dl spacing="compact"><dt>The JSON document contains the following top-level members</dt>
-          </dl>
+          <t><strong>The JSON document contains the following top-level members</strong></t>
           <dl spacing="compact"><dt>protocol</dt>
           <dd>REQUIRED.  Protocol version string.  MUST be <tt>ADP/1.1</tt>.</dd>
           </dl>
@@ -373,8 +369,7 @@ GET https://{domain}/.well-known/agent.json
           </dl>
         </section>
         <section anchor="identity-block" title="Identity Block">
-          <dl spacing="compact"><dt>The identity block MUST contain</dt>
-          </dl>
+          <t><strong>The identity block MUST contain</strong></t>
           <dl spacing="compact"><dt>id</dt>
           <dd>Agent URI in the form <tt>agent:{domain}</tt>.</dd>
           </dl>
@@ -399,8 +394,7 @@ GET https://{domain}/.well-known/agent.json
         </section>
         <section anchor="endpoints-block" title="Endpoints Block">
           <t>At minimum, the <tt>wellKnown</tt> endpoint MUST be present.  Additional</t>
-          <dl spacing="compact"><dt>endpoints provide entry points for different interaction modes</dt>
-          </dl>
+          <t><strong>endpoints provide entry points for different interaction modes</strong></t>
           <dl spacing="compact"><dt>wellKnown</dt>
           <dd>URL of this document (self-referential).</dd>
           </dl>
@@ -421,8 +415,7 @@ GET https://{domain}/.well-known/agent.json
           </dl>
         </section>
         <section anchor="capabilities-block" title="Capabilities Block">
-          <dl spacing="compact"><dt>Each capability is an object with</dt>
-          </dl>
+          <t><strong>Each capability is an object with</strong></t>
           <dl spacing="compact"><dt>id</dt>
           <dd>Unique capability identifier.</dd>
           </dl>
@@ -541,8 +534,7 @@ GET https://{domain}/.well-known/agent.json
           <t>JSON content).</t>
         </section>
         <section title="HTML Meta Tags">
-          <dl spacing="compact"><dt>The page SHOULD include the following meta tags</dt>
-          </dl>
+          <t><strong>The page SHOULD include the following meta tags</strong></t>
           <figure><artwork><![CDATA[
 <meta name="agent-id" content="agent:{domain}">
 <meta name="agent-protocol" content="ADP/1.1">
@@ -563,8 +555,7 @@ GET https://{domain}/.well-known/agent.json
           <t>authentication.</t>
         </section>
         <section title="Connection Handshake">
-          <dl spacing="compact"><dt>A Discovery Client establishes an AGP connection as follows</dt>
-          </dl>
+          <t><strong>A Discovery Client establishes an AGP connection as follows</strong></t>
           <t>Resolve the Agent's chat endpoint from the Well-Known metadata</t>
           <t>(<tt>endpoints.chat</tt>).</t>
           <t>Open a WebSocket connection to the resolved URL using WSS</t>
@@ -578,8 +569,7 @@ GET https://{domain}/.well-known/agent.json
         </section>
         <section title="Message Format">
           <t>Each AGP message is a single JSON object with the following</t>
-          <dl spacing="compact"><dt>structure</dt>
-          </dl>
+          <t><strong>structure</strong></t>
           <figure><artwork><![CDATA[
 {
   "id": "<message-uuid>",
@@ -612,8 +602,7 @@ GET https://{domain}/.well-known/agent.json
         </section>
         <section title="Signature Computation">
           <t>The signature covers the following fields, concatenated with</t>
-          <dl spacing="compact"><dt>newlines</dt>
-          </dl>
+          <t><strong>newlines</strong></t>
           <figure><artwork><![CDATA[
 {id}\n{from}\n{to}\n{type}\n{timestamp}\n{body.content}
           ]]></artwork></figure>
@@ -652,8 +641,7 @@ Content-Type: application/json
     </section>
     <section title="Security Considerations">
       <section title="Trust Escalation Model">
-        <dl spacing="compact"><dt>ADP defines a progressive trust model</dt>
-        </dl>
+        <t><strong>ADP defines a progressive trust model</strong></t>
         <dl spacing="compact"><dt>dns-verified</dt>
         <dd>The DNS record for the Agent has been resolved.  The public key</dd>
         </dl>
@@ -698,8 +686,7 @@ Content-Type: application/json
         <t>perform DANE verification in addition to standard PKI validation.</t>
       </section>
       <section title="Private Agents">
-        <dl spacing="compact"><dt>Agents that do not wish to be publicly discoverable may</dt>
-        </dl>
+        <t><strong>Agents that do not wish to be publicly discoverable may</strong></t>
         <ul spacing="compact">
           <li>Not publish <tt>_agent</tt> DNS records.</li>
           <li>Return HTTP 404 or 403 from the Well-Known endpoint.</li>
@@ -708,8 +695,7 @@ Content-Type: application/json
         </ul>
         <section title="Invitation Format">
           <t>A private Agent may distribute invitations containing the</t>
-          <dl spacing="compact"><dt>information normally obtained through DNS discovery</dt>
-          </dl>
+          <t><strong>information normally obtained through DNS discovery</strong></t>
           <figure><artwork><![CDATA[
 {
   "protocol": "ADP/1.1",
@@ -746,8 +732,7 @@ Content-Type: application/json
       </section>
       <section anchor="iana-media-type" title="Media Type Registration">
         <t>This document requests the registration of the following media type</t>
-        <dl spacing="compact"><dt>in the vendor tree</dt>
-        </dl>
+        <t><strong>in the vendor tree</strong></t>
         <dl spacing="compact"><dt>Type name</dt>
         <dd>application</dd>
         </dl>
@@ -819,8 +804,7 @@ Content-Type: application/json
       <section title="Reference Implementation">
         <t>A reference implementation of ADP is available at</t>
         <t>[https://github.com/harrylian8766/adp-protocol](https://github.com/harrylian8766/adp-protocol).</t>
-        <dl spacing="compact"><dt>The reference implementation includes</dt>
-        </dl>
+        <t><strong>The reference implementation includes</strong></t>
         <ul spacing="compact">
           <li>A DNS record generator for ADP-compliant zones.</li>
           <li>A Well-Known metadata server.</li>
@@ -863,71 +847,6 @@ Content-Type: application/json
   </middle>
 
   <back>
-    <section anchor="appendix-html" title="Appendix: HTML Landing Page Example">
-      <figure><artwork><![CDATA[
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="agent-id" content="agent:alice.example.com">
-  <meta name="agent-protocol" content="ADP/1.1">
-  <title>Alice's Agent</title>
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    "protocol": "ADP/1.1",
-    "identity": {
-      "id": "agent:alice.example.com",
-      "domain": "alice.example.com",
-      "name": "Alice's Agent",
-      "publicKey": {
-        "algorithm": "ed25519",
-        "fingerprint": "ed25519:dGhpcyBpcyBhIHRlc3Q..."
-      }
-    },
-    "endpoints": {
-      "wellKnown": "https://alice.example.com/.well-known/agent.json",
-      "chat": "wss://alice.example.com/agent/chat"
-    },
-    "capabilities": [
-      {
-        "id": "chat",
-        "name": "Conversational Chat",
-        "description": "General-purpose conversational AI",
-        "input": ["text", "image", "file"],
-        "output": ["text", "html"],
-        "interfaces": ["chat", "api"],
-        "languages": ["en", "zh"],
-        "pricing": { "model": "free" }
-      }
-    ]
-  }
-  </script>
-</head>
-<body>
-  <agent-card>
-    <h1>Alice's Agent</h1>
-    <p>General-purpose conversational AI agent.</p>
-    <capability-list>
-      <capability name="Chat" status="available"></capability>
-    </capability-list>
-    <connect-form action="/agent/connect">
-      <input name="from" placeholder="Your Agent ID (agent:...)">
-      <button type="submit">Connect</button>
-    </connect-form>
-  </agent-card>
-</body>
-</html>
-      ]]></artwork></figure>
-    </section>
-    <section title="Author's Address">
-      <figure><artwork><![CDATA[
-Bin Lian
-AI Pair
-Email: TBD
-      ]]></artwork></figure>
-    </section>
     <references title="Normative References">
     <reference anchor="RFC1035" target="https://www.rfc-editor.org/info/rfc1035">
       <front>
@@ -1058,6 +977,71 @@ Email: TBD
       </front>
     </reference>
     </references>
+    <section anchor="appendix-html" title="Appendix: HTML Landing Page Example">
+      <figure><artwork><![CDATA[
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="agent-id" content="agent:alice.example.com">
+  <meta name="agent-protocol" content="ADP/1.1">
+  <title>Alice's Agent</title>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "protocol": "ADP/1.1",
+    "identity": {
+      "id": "agent:alice.example.com",
+      "domain": "alice.example.com",
+      "name": "Alice's Agent",
+      "publicKey": {
+        "algorithm": "ed25519",
+        "fingerprint": "ed25519:dGhpcyBpcyBhIHRlc3Q..."
+      }
+    },
+    "endpoints": {
+      "wellKnown": "https://alice.example.com/.well-known/agent.json",
+      "chat": "wss://alice.example.com/agent/chat"
+    },
+    "capabilities": [
+      {
+        "id": "chat",
+        "name": "Conversational Chat",
+        "description": "General-purpose conversational AI",
+        "input": ["text", "image", "file"],
+        "output": ["text", "html"],
+        "interfaces": ["chat", "api"],
+        "languages": ["en", "zh"],
+        "pricing": { "model": "free" }
+      }
+    ]
+  }
+  </script>
+</head>
+<body>
+  <agent-card>
+    <h1>Alice's Agent</h1>
+    <p>General-purpose conversational AI agent.</p>
+    <capability-list>
+      <capability name="Chat" status="available"></capability>
+    </capability-list>
+    <connect-form action="/agent/connect">
+      <input name="from" placeholder="Your Agent ID (agent:...)">
+      <button type="submit">Connect</button>
+    </connect-form>
+  </agent-card>
+</body>
+</html>
+      ]]></artwork></figure>
+    </section>
+    <section title="Author's Address">
+      <figure><artwork><![CDATA[
+Bin Lian
+AI Pair
+Email: TBD
+      ]]></artwork></figure>
+    </section>
   </back>
 
 </rfc>
